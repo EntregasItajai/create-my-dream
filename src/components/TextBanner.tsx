@@ -16,8 +16,8 @@ export const TextBanner = ({ title, subtitle, link }: TextBannerProps) => {
       rel="noopener noreferrer"
       className="flex items-center p-3 rounded-lg border border-border bg-card gap-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary group"
     >
-      <div className="w-16 h-16 rounded-lg overflow-hidden bg-background flex items-center justify-center p-1">
-        <img src={logo} alt="Entregas Itajaí" className="w-full h-full object-contain" />
+      <div className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
+        <img src={logo} alt="Entregas Itajaí" className="w-full h-full object-cover" />
       </div>
       <div className="flex-1 text-left">
         <p className="font-bold text-primary text-sm">{title}</p>
