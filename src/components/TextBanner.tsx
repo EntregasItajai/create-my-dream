@@ -1,7 +1,8 @@
 import { ArrowRightCircle } from 'lucide-react';
+import logo from '@/assets/logo-entregas-itajai.png';
 
 interface TextBannerProps {
-  imageUrl: string;
+  imageUrl?: string;
   title: string;
   subtitle: string;
   link: string;
@@ -15,8 +16,8 @@ export const TextBanner = ({ title, subtitle, link }: TextBannerProps) => {
       rel="noopener noreferrer"
       className="flex items-center p-3 rounded-lg border border-border bg-card gap-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary group"
     >
-      <div className="w-12 h-12 rounded bg-input border border-border flex items-center justify-center">
-        <span className="text-muted-foreground text-xs font-medium">Logo</span>
+      <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center">
+        <img src={logo} alt="Entregas Itajaí" className="w-full h-full object-contain" />
       </div>
       <div className="flex-1 text-left">
         <p className="font-bold text-primary text-sm">{title}</p>
