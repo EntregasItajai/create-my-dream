@@ -1,12 +1,118 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from 'react';
+import { Header } from '@/components/Header';
+import { SettingsDrawer } from '@/components/SettingsDrawer';
+import { ManualCalculation } from '@/components/ManualCalculation';
+import { AdBanner } from '@/components/AdBanner';
+import { ResultDisplay } from '@/components/ResultDisplay';
+import { toast } from '@/hooks/use-toast';
+
+interface Settings {
+  taxaKm: number;
+  taxaHora: number;
+  precoGasolina: number;
+  consumoMoto: number;
+}
+
+const defaultSettings: Settings = {
+  taxaKm: 2.50,
+  taxaHora: 15.00,
+  precoGasolina: 5.80,
+  consumoMoto: 35,
+};
 
 const Index = () => {
+  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [manualDistance, setManualDistance] = useState('');
+  const [manualHours, setManualHours] = useState('');
+  const [manualMinutes, setManualMinutes] = useState('');
+  const [manualResult, setManualResult] = useState<{ distance: number; duration: number } | null>(null);
+
+  // Close settings drawer after 3 seconds on first load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSettingsOpen(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleManualCalculate = () => {
+    const distance = parseFloat(manualDistance);
+    const hours = parseFloat(manualHours) || 0;
+    const minutes = parseFloat(manualMinutes) || 0;
+    const totalMinutes = (hours * 60) + minutes;
+
+    if (isNaN(distance) || distance <= 0) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe uma distância válida.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (totalMinutes <= 0) {
+      toast({
+        title: "Erro",
+        description: "Por favor, informe um tempo válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setManualResult({ distance, duration: totalMinutes });
+    toast({
+      title: "Sucesso!",
+      description: "Frete calculado com sucesso.",
+    });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header onSettingsClick={() => setSettingsOpen(true)} />
+      
+      <SettingsDrawer
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onSettingsChange={setSettings}
+      />
+
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="grid gap-6">
+          <ManualCalculation
+            distance={manualDistance}
+            hours={manualHours}
+            minutes={manualMinutes}
+            onDistanceChange={setManualDistance}
+            onHoursChange={setManualHours}
+            onMinutesChange={setManualMinutes}
+            onCalculate={handleManualCalculate}
+            isCalculating={false}
+          />
+
+          {/* Ad Banner */}
+          <AdBanner />
+
+          {/* Result Display */}
+          {manualResult && (
+            <ResultDisplay 
+              totalDistance={manualResult.distance} 
+              totalDuration={manualResult.duration}
+              settings={settings} 
+            />
+          )}
+
+          {/* Second Ad Banner */}
+          <AdBanner />
+        </div>
+      </main>
+
+      <footer className="py-6 text-center border-t border-border/50 mt-8">
+        <p className="text-sm text-muted-foreground">
+          © 2024 Entregas Itajaí - Soluções Logísticas
+        </p>
+      </footer>
     </div>
   );
 };
