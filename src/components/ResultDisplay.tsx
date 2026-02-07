@@ -1,4 +1,4 @@
-import { DollarSign, Route, Clock, Fuel, TrendingUp } from 'lucide-react';
+import { DollarSign, Route, Clock, Fuel, TrendingUp, Wrench, TrendingDown, Tag } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Settings {
@@ -6,6 +6,8 @@ interface Settings {
   taxaHora: number;
   precoGasolina: number;
   consumoMoto: number;
+  depreciacao: number;
+  manutencao: number;
 }
 
 interface ResultDisplayProps {
@@ -20,9 +22,14 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
   // Cálculos
   const valorKm = totalDistance * settings.taxaKm;
   const valorHora = hours * settings.taxaHora;
-  const custoGasolina = (totalDistance / settings.consumoMoto) * settings.precoGasolina;
+  const litrosGasolina = totalDistance / settings.consumoMoto;
+  const custoGasolina = litrosGasolina * settings.precoGasolina;
+  const custoDepreciacao = totalDistance * settings.depreciacao;
+  const custoManutencao = totalDistance * settings.manutencao;
+  const custoTotal = custoGasolina + custoDepreciacao + custoManutencao;
   const valorBruto = valorKm + valorHora;
-  const lucroLiquido = valorBruto - custoGasolina;
+  const lucroLiquido = valorBruto - custoTotal;
+  const precoSugerido = lucroLiquido > 0 ? valorBruto : custoTotal * 1.3; // 30% de margem mínima
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -36,33 +43,6 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
     }
     return `${m}min`;
   };
-
-  const detailItems = [
-    {
-      icon: Route,
-      label: 'Distância',
-      value: `${totalDistance.toFixed(1)} km`,
-      subValue: formatCurrency(valorKm),
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-500/10',
-    },
-    {
-      icon: Clock,
-      label: 'Tempo',
-      value: formatTime(totalDuration),
-      subValue: formatCurrency(valorHora),
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10',
-    },
-    {
-      icon: Fuel,
-      label: 'Combustível',
-      value: `${(totalDistance / settings.consumoMoto).toFixed(2)}L`,
-      subValue: `- ${formatCurrency(custoGasolina)}`,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10',
-    },
-  ];
 
   return (
     <Card className="shadow-card border-border/50 overflow-hidden">
@@ -81,44 +61,109 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
       </CardHeader>
       
       <CardContent className="pt-6 space-y-6">
-        {/* Valor Total */}
+        {/* Preço Sugerido */}
         <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-primary/20">
-          <p className="text-sm text-muted-foreground mb-1">Lucro Líquido Estimado</p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Tag className="w-5 h-5 text-primary" />
+            <p className="text-sm text-muted-foreground">Preço Sugerido</p>
+          </div>
           <div className="flex items-center justify-center gap-2">
             <DollarSign className="w-8 h-8 text-primary" />
             <span className="text-4xl font-bold text-gradient">
+              {formatCurrency(precoSugerido)}
+            </span>
+          </div>
+        </div>
+
+        {/* Distância e Tempo */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <Route className="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Distância</p>
+              <p className="font-semibold text-foreground">{totalDistance.toFixed(1)} km</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-purple-500" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Tempo</p>
+              <p className="font-semibold text-foreground">{formatTime(totalDuration)}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Custos da Viagem */}
+        <div className="p-4 rounded-xl bg-destructive/5 border border-destructive/20">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">💸</span>
+            <span className="font-semibold text-foreground">Custos da Viagem</span>
+            <span className="ml-auto font-bold text-destructive">- {formatCurrency(custoTotal)}</span>
+          </div>
+          
+          <div className="space-y-3">
+            {/* Gasolina */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                  <Fuel className="w-4 h-4 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Combustível</p>
+                  <p className="text-xs text-muted-foreground">{litrosGasolina.toFixed(2)}L × {formatCurrency(settings.precoGasolina)}</p>
+                </div>
+              </div>
+              <span className="text-sm font-semibold text-destructive">- {formatCurrency(custoGasolina)}</span>
+            </div>
+
+            {/* Depreciação */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                  <TrendingDown className="w-4 h-4 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Depreciação</p>
+                  <p className="text-xs text-muted-foreground">{totalDistance.toFixed(1)}km × {formatCurrency(settings.depreciacao)}</p>
+                </div>
+              </div>
+              <span className="text-sm font-semibold text-destructive">- {formatCurrency(custoDepreciacao)}</span>
+            </div>
+
+            {/* Manutenção */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <Wrench className="w-4 h-4 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Manutenção</p>
+                  <p className="text-xs text-muted-foreground">{totalDistance.toFixed(1)}km × {formatCurrency(settings.manutencao)}</p>
+                </div>
+              </div>
+              <span className="text-sm font-semibold text-destructive">- {formatCurrency(custoManutencao)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Lucro Líquido */}
+        <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-foreground">Lucro Líquido</span>
+            </div>
+            <span className={`text-xl font-bold ${lucroLiquido >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {formatCurrency(lucroLiquido)}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Valor bruto: {formatCurrency(valorBruto)}
+          <p className="text-xs text-muted-foreground mt-1">
+            Valor bruto: {formatCurrency(valorBruto)} (Km: {formatCurrency(valorKm)} + Hora: {formatCurrency(valorHora)})
           </p>
-        </div>
-
-        {/* Detalhes */}
-        <div className="grid gap-3">
-          {detailItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.label}
-                className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border/50"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg ${item.bgColor} flex items-center justify-center`}>
-                    <Icon className={`w-5 h-5 ${item.color}`} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">{item.label}</p>
-                    <p className="font-semibold text-foreground">{item.value}</p>
-                  </div>
-                </div>
-                <span className={`font-bold ${item.label === 'Combustível' ? 'text-destructive' : 'text-primary'}`}>
-                  {item.subValue}
-                </span>
-              </div>
-            );
-          })}
         </div>
 
         {/* Resumo */}
@@ -129,9 +174,9 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
           </div>
           <p className="text-sm text-muted-foreground">
             Para uma entrega de <strong className="text-foreground">{totalDistance.toFixed(1)}km</strong> em{' '}
-            <strong className="text-foreground">{formatTime(totalDuration)}</strong>, você terá um lucro estimado de{' '}
-            <strong className="text-primary">{formatCurrency(lucroLiquido)}</strong> após descontar{' '}
-            <strong className="text-destructive">{formatCurrency(custoGasolina)}</strong> de combustível.
+            <strong className="text-foreground">{formatTime(totalDuration)}</strong>, sugerimos cobrar{' '}
+            <strong className="text-primary">{formatCurrency(precoSugerido)}</strong>. Seus custos totais serão{' '}
+            <strong className="text-destructive">{formatCurrency(custoTotal)}</strong>.
           </p>
         </div>
       </CardContent>
