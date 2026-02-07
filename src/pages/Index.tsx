@@ -3,7 +3,7 @@ import { Header } from '@/components/Header';
 import { SettingsDrawer } from '@/components/SettingsDrawer';
 import { FreightCalculator } from '@/components/FreightCalculator';
 import { FreightResult } from '@/components/FreightResult';
-import { ImageBanner } from '@/components/ImageBanner';
+import { WhatsAppLink } from '@/components/WhatsAppLink';
 import { TextBanner } from '@/components/TextBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
@@ -141,13 +141,12 @@ const Index = () => {
         onSettingsChange={setSettings}
       />
 
-      <main className="container mx-auto px-4 py-8 max-w-lg">
+      <main className="container mx-auto px-4 py-6 max-w-lg">
         <div className="space-y-6">
-          {/* Banner Topo */}
-          <ImageBanner 
-            imageUrl="/placeholder.svg"
+          {/* Link WhatsApp */}
+          <WhatsAppLink 
+            text="Solicite Orçamento no WhatsApp"
             link="https://wa.me/5547991508563?text=Olá!%20Gostaria%20de%20solicitar%20um%20orçamento."
-            alt="Solicite Orçamento no WhatsApp"
           />
 
           {/* Calculadora */}
@@ -173,12 +172,6 @@ const Index = () => {
           />
         </div>
       </main>
-
-      <footer className="py-6 text-center border-t border-border/50 mt-8">
-        <p className="text-sm text-muted-foreground">
-          © 2024 Entregas Itajaí - Soluções Logísticas
-        </p>
-      </footer>
     </div>
   );
 };
