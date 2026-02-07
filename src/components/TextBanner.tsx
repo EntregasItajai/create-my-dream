@@ -7,7 +7,7 @@ interface TextBannerProps {
   link: string;
 }
 
-export const TextBanner = ({ title, subtitle, link }: TextBannerProps) => {
+export const TextBanner = ({ imageUrl, title, subtitle, link }: TextBannerProps) => {
   return (
     <a 
       href={link} 
@@ -15,7 +15,7 @@ export const TextBanner = ({ title, subtitle, link }: TextBannerProps) => {
       rel="noopener noreferrer"
       className="flex items-center p-3 rounded-lg border border-border bg-card gap-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary group"
     >
-      <div className="w-12 h-12 rounded bg-input border border-border flex items-center justify-center">
+      <div className="w-12 h-12 rounded bg-background border border-border flex items-center justify-center">
         <span className="text-muted-foreground text-xs font-medium">Logo</span>
       </div>
       <div className="flex-1 text-left">

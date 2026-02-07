@@ -87,8 +87,8 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
       <SheetContent side="right" className="w-full sm:w-96 bg-card border-l border-border overflow-y-auto">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-              <Gauge className="w-4 h-4 text-secondary-foreground" />
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+              <Gauge className="w-4 h-4 text-primary-foreground" />
             </div>
             Configurações
           </SheetTitle>
@@ -96,7 +96,7 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
 
         {/* Tabela de Venda */}
         <div className="mb-6">
-          <h3 className="text-xs font-bold text-secondary uppercase tracking-wider mb-4 flex items-center gap-2">
+          <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
             <Tag className="w-3 h-3" /> Tabela de Venda
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -121,7 +121,7 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
                       min="0"
                       value={settings[field.key]}
                       onChange={(e) => handleChange(field.key, e.target.value)}
-                      className={`${field.prefix ? 'pl-10' : 'pl-3'} ${field.suffix ? 'pr-14' : 'pr-3'} h-10 bg-input border-border focus:border-primary focus:ring-primary/20 transition-all ${field.highlight ? 'font-bold border-primary/50' : ''}`}
+                      className={`${field.prefix ? 'pl-10' : 'pl-3'} ${field.suffix ? 'pr-14' : 'pr-3'} h-10 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all ${field.highlight ? 'font-bold border-primary/50' : ''}`}
                     />
                     {field.suffix && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
@@ -139,7 +139,7 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
 
         {/* Custos Operacionais */}
         <div>
-          <h3 className="text-xs font-bold text-rose-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
             <Wrench className="w-3 h-3" /> Custos Operacionais
           </h3>
           <div className="grid grid-cols-2 gap-3">
@@ -164,7 +164,7 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
                       min="0"
                       value={settings[field.key]}
                       onChange={(e) => handleChange(field.key, e.target.value)}
-                      className={`${field.prefix ? 'pl-10' : 'pl-3'} ${field.suffix ? 'pr-14' : 'pr-3'} h-10 bg-input border-border focus:border-primary focus:ring-primary/20 transition-all`}
+                      className={`${field.prefix ? 'pl-10' : 'pl-3'} ${field.suffix ? 'pr-14' : 'pr-3'} h-10 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all`}
                     />
                     {field.suffix && (
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">

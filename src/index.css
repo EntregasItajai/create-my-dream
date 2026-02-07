@@ -4,53 +4,50 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* Design System - Dark Navy Logistics Dashboard */
+/* Design System - Calculadora de Frete para Motoboys */
 
 @layer base {
   :root {
-    /* Light mode - Slate theme */
-    --background: 215 28% 95%;
-    --foreground: 222 47% 11%;
+    --background: 140 20% 97%;
+    --foreground: 150 30% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 150 30% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 150 30% 10%;
 
-    /* Primary: Cyan for accents */
-    --primary: 187 85% 53%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 142 70% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Green for action buttons */
-    --secondary: 142 71% 45%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 45 93% 58%;
+    --secondary-foreground: 150 30% 10%;
 
-    --muted: 215 20% 90%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 140 15% 92%;
+    --muted-foreground: 150 15% 45%;
 
-    --accent: 187 85% 53%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 45 93% 58%;
+    --accent-foreground: 150 30% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 20% 85%;
-    --input: 215 20% 85%;
-    --ring: 187 85% 53%;
+    --border: 140 20% 88%;
+    --input: 140 20% 88%;
+    --ring: 142 70% 45%;
 
     --radius: 0.75rem;
 
     /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(142 76% 36%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(187 85% 53%) 0%, hsl(199 89% 48%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(215 28% 97%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(142 70% 45%) 0%, hsl(152 76% 40%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(35 95% 55%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(140 20% 98%) 100%);
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px -2px hsl(222 47% 11% / 0.08);
-    --shadow-md: 0 8px 24px -8px hsl(222 47% 11% / 0.12);
-    --shadow-lg: 0 16px 48px -12px hsl(222 47% 11% / 0.16);
-    --shadow-glow: 0 0 20px hsl(142 71% 45% / 0.4);
+    --shadow-sm: 0 2px 8px -2px hsl(150 30% 10% / 0.08);
+    --shadow-md: 0 8px 24px -8px hsl(150 30% 10% / 0.12);
+    --shadow-lg: 0 16px 48px -12px hsl(150 30% 10% / 0.16);
+    --shadow-glow: 0 0 20px hsl(142 70% 45% / 0.3);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -63,52 +60,42 @@
   }
 
   .dark {
-    /* Dark mode - Slate Navy theme */
-    /* background: slate-900 (#0f172a) */
-    --background: 222 47% 11%;
-    /* foreground: slate-100 */
-    --foreground: 210 40% 96%;
+    --background: 150 25% 8%;
+    --foreground: 140 15% 95%;
 
-    /* card: slate-800 (#1e293b) */
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 96%;
+    --card: 150 20% 12%;
+    --card-foreground: 140 15% 95%;
 
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 150 20% 12%;
+    --popover-foreground: 140 15% 95%;
 
-    /* Primary: Cyan for icons and accents */
-    --primary: 187 85% 53%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 142 70% 50%;
+    --primary-foreground: 150 30% 10%;
 
-    /* Secondary: Green for main action button */
-    --secondary: 142 71% 45%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 45 93% 55%;
+    --secondary-foreground: 150 30% 10%;
 
-    /* muted: slate-700 */
-    --muted: 215 25% 27%;
-    /* muted-foreground: slate-400 */
-    --muted-foreground: 215 16% 57%;
+    --muted: 150 15% 18%;
+    --muted-foreground: 140 10% 60%;
 
-    --accent: 187 85% 53%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 45 93% 55%;
+    --accent-foreground: 150 30% 10%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    /* border: slate-700 */
-    --border: 215 25% 27%;
-    /* input: slate-950 */
-    --input: 222 47% 11%;
-    --ring: 187 85% 53%;
+    --border: 150 15% 20%;
+    --input: 150 15% 20%;
+    --ring: 142 70% 50%;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 187 85% 53%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 215 25% 27%;
-    --sidebar-ring: 187 85% 53%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
