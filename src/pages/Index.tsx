@@ -17,22 +17,39 @@ interface Settings {
 }
 
 const defaultSettings: Settings = {
-  taxaKm: 2.50,
-  taxaHora: 15.00,
-  precoGasolina: 5.80,
-  consumoMoto: 35,
+  taxaKm: 0.50,
+  taxaHora: 50.00,
+  precoGasolina: 6.70,
+  consumoMoto: 37,
   depreciacao: 0.10,
-  manutencao: 0.05,
+  manutencao: 0.20,
+};
+
+const loadSettings = (): Settings => {
+  const stored = localStorage.getItem('freightSettings');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return defaultSettings;
+    }
+  }
+  return defaultSettings;
 };
 
 const Index = () => {
   const { isDark, toggleTheme } = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(true);
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [settings, setSettings] = useState<Settings>(loadSettings);
   const [manualDistance, setManualDistance] = useState('');
   const [manualHours, setManualHours] = useState('');
   const [manualMinutes, setManualMinutes] = useState('');
   const [manualResult, setManualResult] = useState<{ distance: number; duration: number } | null>(null);
+
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('freightSettings', JSON.stringify(settings));
+  }, [settings]);
 
   // Close settings drawer after 3 seconds on first load
   useEffect(() => {
