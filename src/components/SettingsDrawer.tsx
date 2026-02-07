@@ -1,16 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Fuel, Timer, Route, Gauge, Wrench, TrendingDown } from 'lucide-react';
-
-interface Settings {
-  taxaKm: number;
-  taxaHora: number;
-  precoGasolina: number;
-  consumoMoto: number;
-  depreciacao: number;
-  manutencao: number;
-}
+import { Fuel, Timer, Route, Gauge, Wrench, TrendingDown, Tag } from 'lucide-react';
+import { Settings } from '@/pages/Index';
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -25,26 +17,40 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
     onSettingsChange({ ...settings, [key]: numValue });
   };
 
-  const settingsFields = [
+  const saleFields = [
     {
-      key: 'taxaKm' as keyof Settings,
-      label: 'Taxa por Km',
+      key: 'precoKm' as keyof Settings,
+      label: 'Preço / Km',
       icon: Route,
       prefix: 'R$',
       suffix: '/km',
       step: '0.10',
     },
     {
-      key: 'taxaHora' as keyof Settings,
-      label: 'Taxa por Hora',
+      key: 'valorHora' as keyof Settings,
+      label: 'Valor Hora',
       icon: Timer,
       prefix: 'R$',
       suffix: '/hora',
       step: '1.00',
+      highlight: true,
     },
     {
+      key: 'valorMinimo' as keyof Settings,
+      label: 'Valor Mínimo (Piso)',
+      icon: Tag,
+      prefix: 'R$',
+      suffix: '',
+      step: '1.00',
+      fullWidth: true,
+      highlight: true,
+    },
+  ];
+
+  const costFields = [
+    {
       key: 'precoGasolina' as keyof Settings,
-      label: 'Preço da Gasolina',
+      label: 'Gasolina (R$/L)',
       icon: Fuel,
       prefix: 'R$',
       suffix: '/litro',
@@ -52,33 +58,33 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
     },
     {
       key: 'consumoMoto' as keyof Settings,
-      label: 'Consumo da Moto',
+      label: 'Consumo (Km/L)',
       icon: Gauge,
       prefix: '',
       suffix: 'km/l',
       step: '1',
     },
     {
-      key: 'depreciacao' as keyof Settings,
-      label: 'Depreciação',
-      icon: TrendingDown,
-      prefix: 'R$',
-      suffix: '/km',
-      step: '0.01',
-    },
-    {
       key: 'manutencao' as keyof Settings,
-      label: 'Manutenção',
+      label: 'Manutenção (R$/Km)',
       icon: Wrench,
       prefix: 'R$',
       suffix: '/km',
-      step: '0.01',
+      step: '0.05',
+    },
+    {
+      key: 'depreciacao' as keyof Settings,
+      label: 'Depreciação (R$/Km)',
+      icon: TrendingDown,
+      prefix: 'R$',
+      suffix: '/km',
+      step: '0.05',
     },
   ];
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:w-96 bg-card border-l border-border">
+      <SheetContent side="right" className="w-full sm:w-96 bg-card border-l border-border overflow-y-auto">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
@@ -88,37 +94,88 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-5">
-          {settingsFields.map((field) => {
-            const Icon = field.icon;
-            return (
-              <div key={field.key} className="space-y-2">
-                <Label htmlFor={field.key} className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <Icon className="w-4 h-4 text-primary" />
-                  {field.label}
-                </Label>
-                <div className="relative">
-                  {field.prefix && (
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">
-                      {field.prefix}
-                    </span>
-                  )}
-                  <Input
-                    id={field.key}
-                    type="number"
-                    step={field.step}
-                    min="0"
-                    value={settings[field.key]}
-                    onChange={(e) => handleChange(field.key, e.target.value)}
-                    className={`${field.prefix ? 'pl-10' : 'pl-4'} pr-16 h-12 bg-muted/50 border-border focus:border-primary focus:ring-primary/20 transition-all`}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                    {field.suffix}
-                  </span>
+        {/* Tabela de Venda */}
+        <div className="mb-6">
+          <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Tag className="w-3 h-3" /> Tabela de Venda
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {saleFields.map((field) => {
+              const Icon = field.icon;
+              return (
+                <div key={field.key} className={`space-y-1 ${field.fullWidth ? 'col-span-2' : ''}`}>
+                  <Label htmlFor={field.key} className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+                    <Icon className="w-3 h-3 text-primary" />
+                    {field.label}
+                  </Label>
+                  <div className="relative">
+                    {field.prefix && (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        {field.prefix}
+                      </span>
+                    )}
+                    <Input
+                      id={field.key}
+                      type="number"
+                      step={field.step}
+                      min="0"
+                      value={settings[field.key]}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      className={`${field.prefix ? 'pl-10' : 'pl-3'} ${field.suffix ? 'pr-14' : 'pr-3'} h-10 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all ${field.highlight ? 'font-bold border-primary/50' : ''}`}
+                    />
+                    {field.suffix && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                        {field.suffix}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </div>
+
+        <hr className="border-border mb-6" />
+
+        {/* Custos Operacionais */}
+        <div>
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Wrench className="w-3 h-3" /> Custos Operacionais
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {costFields.map((field) => {
+              const Icon = field.icon;
+              return (
+                <div key={field.key} className="space-y-1">
+                  <Label htmlFor={field.key} className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
+                    <Icon className="w-3 h-3 text-primary" />
+                    {field.label}
+                  </Label>
+                  <div className="relative">
+                    {field.prefix && (
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                        {field.prefix}
+                      </span>
+                    )}
+                    <Input
+                      id={field.key}
+                      type="number"
+                      step={field.step}
+                      min="0"
+                      value={settings[field.key]}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      className={`${field.prefix ? 'pl-10' : 'pl-3'} ${field.suffix ? 'pr-14' : 'pr-3'} h-10 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all`}
+                    />
+                    {field.suffix && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">
+                        {field.suffix}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div className="mt-8 p-4 rounded-xl bg-primary/10 border border-primary/20">
