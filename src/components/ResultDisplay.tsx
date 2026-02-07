@@ -78,8 +78,8 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
         {/* Distância e Tempo */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <Route className="w-5 h-5 text-blue-500" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Route className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Distância</p>
@@ -87,8 +87,8 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-purple-500" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Tempo</p>
@@ -98,54 +98,54 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
         </div>
 
         {/* Custos da Viagem */}
-        <div className="p-4 rounded-xl bg-destructive/5 border border-destructive/20">
+        <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-lg">💸</span>
             <span className="font-semibold text-foreground">Custos da Viagem</span>
-            <span className="ml-auto font-bold text-destructive">- {formatCurrency(custoTotal)}</span>
+            <span className="ml-auto font-bold text-muted-foreground">- {formatCurrency(custoTotal)}</span>
           </div>
           
           <div className="space-y-3">
             {/* Gasolina */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                  <Fuel className="w-4 h-4 text-orange-500" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Fuel className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Combustível</p>
                   <p className="text-xs text-muted-foreground">{litrosGasolina.toFixed(2)}L × {formatCurrency(settings.precoGasolina)}</p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-destructive">- {formatCurrency(custoGasolina)}</span>
+              <span className="text-sm font-semibold text-muted-foreground">- {formatCurrency(custoGasolina)}</span>
             </div>
 
             {/* Depreciação */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
-                  <TrendingDown className="w-4 h-4 text-red-500" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <TrendingDown className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Depreciação</p>
                   <p className="text-xs text-muted-foreground">{totalDistance.toFixed(1)}km × {formatCurrency(settings.depreciacao)}</p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-destructive">- {formatCurrency(custoDepreciacao)}</span>
+              <span className="text-sm font-semibold text-muted-foreground">- {formatCurrency(custoDepreciacao)}</span>
             </div>
 
             {/* Manutenção */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <Wrench className="w-4 h-4 text-amber-500" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Wrench className="w-4 h-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Manutenção</p>
                   <p className="text-xs text-muted-foreground">{totalDistance.toFixed(1)}km × {formatCurrency(settings.manutencao)}</p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-destructive">- {formatCurrency(custoManutencao)}</span>
+              <span className="text-sm font-semibold text-muted-foreground">- {formatCurrency(custoManutencao)}</span>
             </div>
           </div>
         </div>
@@ -176,7 +176,7 @@ export const ResultDisplay = ({ totalDistance, totalDuration, settings }: Result
             Para uma entrega de <strong className="text-foreground">{totalDistance.toFixed(1)}km</strong> em{' '}
             <strong className="text-foreground">{formatTime(totalDuration)}</strong>, sugerimos cobrar{' '}
             <strong className="text-primary">{formatCurrency(precoSugerido)}</strong>. Seus custos totais serão{' '}
-            <strong className="text-destructive">{formatCurrency(custoTotal)}</strong>.
+            <strong className="text-foreground">{formatCurrency(custoTotal)}</strong>.
           </p>
         </div>
       </CardContent>
