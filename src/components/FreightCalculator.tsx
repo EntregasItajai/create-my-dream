@@ -40,7 +40,7 @@ export const FreightCalculator = ({
               onChange={(e) => onDistanceChange(e.target.value)}
               min="0"
               step="0.1"
-              className="w-full bg-background border border-border text-foreground text-center text-2xl font-bold rounded-lg py-4 px-4 transition-all focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground placeholder:font-bold"
+              className="w-full bg-input border border-border text-foreground text-center text-2xl font-bold rounded-lg py-4 px-4 transition-all focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground placeholder:font-bold"
             />
           </div>
 
@@ -57,7 +57,7 @@ export const FreightCalculator = ({
                   value={hours}
                   onChange={(e) => onHoursChange(e.target.value)}
                   min="0"
-                  className="w-full bg-background border border-border text-foreground text-center text-2xl font-bold rounded-lg py-4 px-4 transition-all focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground placeholder:font-bold"
+                  className="w-full bg-input border border-border text-foreground text-center text-2xl font-bold rounded-lg py-4 px-4 transition-all focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground placeholder:font-bold"
                 />
                 <p className="text-[10px] text-muted-foreground text-center mt-2 uppercase font-medium">Horas</p>
               </div>
@@ -69,17 +69,17 @@ export const FreightCalculator = ({
                   onChange={(e) => onMinutesChange(e.target.value)}
                   min="0"
                   max="59"
-                  className="w-full bg-background border border-border text-foreground text-center text-2xl font-bold rounded-lg py-4 px-4 transition-all focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground placeholder:font-bold"
+                  className="w-full bg-input border border-border text-foreground text-center text-2xl font-bold rounded-lg py-4 px-4 transition-all focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground placeholder:font-bold"
                 />
                 <p className="text-[10px] text-muted-foreground text-center mt-2 uppercase font-medium">Minutos</p>
               </div>
             </div>
           </div>
 
-          {/* Botão Calcular */}
+          {/* Botão Calcular - VERDE para destaque */}
           <Button
             onClick={onCalculate}
-            className="w-full h-16 text-lg font-bold bg-primary hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] text-primary-foreground flex items-center justify-center gap-3 rounded-lg"
+            className="w-full h-16 text-lg font-bold bg-secondary hover:bg-secondary/90 transition-all shadow-glow text-secondary-foreground flex items-center justify-center gap-3 rounded-lg"
           >
             <Calculator className="w-6 h-6" />
             CALCULAR VALOR

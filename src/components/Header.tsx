@@ -13,7 +13,7 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
       <div className="container mx-auto px-4 max-w-lg">
         <div className="flex justify-between items-center py-4">
           <div>
-            <h1 className="text-xl font-bold text-primary tracking-tight">ENTREGAS ITAJAÍ</h1>
+            <h1 className="text-xl font-bold text-secondary tracking-tight">ENTREGAS ITAJAÍ</h1>
             <p className="text-xs text-muted-foreground">Calculadora de Frete</p>
           </div>
           <Button 
