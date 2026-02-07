@@ -5,6 +5,7 @@ import { ManualCalculation } from '@/components/ManualCalculation';
 import { AdBanner } from '@/components/AdBanner';
 import { ResultDisplay } from '@/components/ResultDisplay';
 import { toast } from '@/hooks/use-toast';
+import { useTheme } from '@/hooks/useTheme';
 
 interface Settings {
   taxaKm: number;
@@ -21,6 +22,7 @@ const defaultSettings: Settings = {
 };
 
 const Index = () => {
+  const { isDark, toggleTheme } = useTheme();
   const [settingsOpen, setSettingsOpen] = useState(true);
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [manualDistance, setManualDistance] = useState('');
@@ -69,7 +71,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSettingsClick={() => setSettingsOpen(true)} />
+      <Header onSettingsClick={() => setSettingsOpen(true)} isDark={isDark} onToggleTheme={toggleTheme} />
       
       <SettingsDrawer
         isOpen={settingsOpen}

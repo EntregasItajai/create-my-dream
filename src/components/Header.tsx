@@ -1,11 +1,13 @@
-import { Settings, Bike } from 'lucide-react';
+import { Settings, Bike, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
   onSettingsClick: () => void;
+  isDark: boolean;
+  onToggleTheme: () => void;
 }
 
-export const Header = ({ onSettingsClick }: HeaderProps) => {
+export const Header = ({ onSettingsClick, isDark, onToggleTheme }: HeaderProps) => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-4xl">
@@ -19,14 +21,25 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
           </div>
         </div>
         
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={onSettingsClick}
-          className="hover:bg-primary/10 hover:text-primary transition-colors"
-        >
-          <Settings className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onToggleTheme}
+            className="hover:bg-primary/10 hover:text-primary transition-colors"
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={onSettingsClick}
+            className="hover:bg-primary/10 hover:text-primary transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
+        </div>
       </div>
     </header>
   );
