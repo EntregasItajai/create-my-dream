@@ -12,6 +12,8 @@ interface Settings {
   taxaHora: number;
   precoGasolina: number;
   consumoMoto: number;
+  depreciacao: number;
+  manutencao: number;
 }
 
 const defaultSettings: Settings = {
@@ -19,6 +21,8 @@ const defaultSettings: Settings = {
   taxaHora: 15.00,
   precoGasolina: 5.80,
   consumoMoto: 35,
+  depreciacao: 0.10,
+  manutencao: 0.05,
 };
 
 const Index = () => {

@@ -1,13 +1,15 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Fuel, Timer, Route, Gauge } from 'lucide-react';
+import { Fuel, Timer, Route, Gauge, Wrench, TrendingDown } from 'lucide-react';
 
 interface Settings {
   taxaKm: number;
   taxaHora: number;
   precoGasolina: number;
   consumoMoto: number;
+  depreciacao: number;
+  manutencao: number;
 }
 
 interface SettingsDrawerProps {
@@ -55,6 +57,22 @@ export const SettingsDrawer = ({ isOpen, onClose, settings, onSettingsChange }: 
       prefix: '',
       suffix: 'km/l',
       step: '1',
+    },
+    {
+      key: 'depreciacao' as keyof Settings,
+      label: 'Depreciação',
+      icon: TrendingDown,
+      prefix: 'R$',
+      suffix: '/km',
+      step: '0.01',
+    },
+    {
+      key: 'manutencao' as keyof Settings,
+      label: 'Manutenção',
+      icon: Wrench,
+      prefix: 'R$',
+      suffix: '/km',
+      step: '0.01',
     },
   ];
 
