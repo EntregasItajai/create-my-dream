@@ -158,10 +158,7 @@ const Index = () => {
 
           {/* Banner Rodapé */}
           <TextBanner 
-            imageUrl="/placeholder.svg"
-            title="VISITE NOSSO SITE OFICIAL"
-            subtitle="Soluções logísticas completas para você."
-            link="https://entregasitajai.com/"
+            link="https://www.instagram.com/entregasitajai.com.br/"
           />
         </div>
       </main>
