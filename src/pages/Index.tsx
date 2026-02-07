@@ -19,11 +19,11 @@ export interface Settings {
 }
 
 const defaultSettings: Settings = {
-  precoKm: 1.50,
-  valorHora: 25.00,
+  precoKm: 0.50,
+  valorHora: 50.00,
   valorMinimo: 15.00,
   precoGasolina: 6.50,
-  consumoMoto: 35,
+  consumoMoto: 37,
   depreciacao: 0.10,
   manutencao: 0.20,
 };
