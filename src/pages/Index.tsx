@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { SettingsDrawer } from '@/components/SettingsDrawer';
-import { ManualCalculation } from '@/components/ManualCalculation';
-import { AdBanner } from '@/components/AdBanner';
-import { ResultDisplay } from '@/components/ResultDisplay';
+import { FreightCalculator } from '@/components/FreightCalculator';
+import { FreightResult } from '@/components/FreightResult';
+import { ImageBanner } from '@/components/ImageBanner';
+import { TextBanner } from '@/components/TextBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
 
-interface Settings {
-  taxaKm: number;
-  taxaHora: number;
+export interface Settings {
+  precoKm: number;
+  valorHora: number;
+  valorMinimo: number;
   precoGasolina: number;
   consumoMoto: number;
   depreciacao: number;
@@ -17,10 +19,11 @@ interface Settings {
 }
 
 const defaultSettings: Settings = {
-  taxaKm: 0.50,
-  taxaHora: 50.00,
-  precoGasolina: 6.70,
-  consumoMoto: 37,
+  precoKm: 1.50,
+  valorHora: 25.00,
+  valorMinimo: 15.00,
+  precoGasolina: 6.50,
+  consumoMoto: 35,
   depreciacao: 0.10,
   manutencao: 0.20,
 };
@@ -37,38 +40,43 @@ const loadSettings = (): Settings => {
   return defaultSettings;
 };
 
+export interface CalculationResult {
+  valorFinal: number;
+  minimoAplicado: boolean;
+  custoCombustivel: number;
+  litrosUsados: number;
+  custoManutencao: number;
+  custoDepreciacao: number;
+  custoTotal: number;
+  lucroLiquido: number;
+  distancia: number;
+  tempoTotal: number;
+}
+
 const Index = () => {
   const { isDark, toggleTheme } = useTheme();
-  const [settingsOpen, setSettingsOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>(loadSettings);
-  const [manualDistance, setManualDistance] = useState('');
-  const [manualHours, setManualHours] = useState('');
-  const [manualMinutes, setManualMinutes] = useState('');
-  const [manualResult, setManualResult] = useState<{ distance: number; duration: number } | null>(null);
+  const [distance, setDistance] = useState('');
+  const [hours, setHours] = useState('');
+  const [minutes, setMinutes] = useState('');
+  const [result, setResult] = useState<CalculationResult | null>(null);
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('freightSettings', JSON.stringify(settings));
   }, [settings]);
 
-  // Close settings drawer after 3 seconds on first load
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSettingsOpen(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
+  const handleCalculate = () => {
+    const km = parseFloat(distance);
+    const h = parseFloat(hours) || 0;
+    const m = parseFloat(minutes) || 0;
+    const totalMinutes = (h * 60) + m;
 
-  const handleManualCalculate = () => {
-    const distance = parseFloat(manualDistance);
-    const hours = parseFloat(manualHours) || 0;
-    const minutes = parseFloat(manualMinutes) || 0;
-    const totalMinutes = (hours * 60) + minutes;
-
-    if (isNaN(distance) || distance <= 0) {
+    if (isNaN(km) || km <= 0) {
       toast({
         title: "Erro",
-        description: "Por favor, informe uma distância válida.",
+        description: "Por favor, preencha a Distância.",
         variant: "destructive",
       });
       return;
@@ -77,16 +85,48 @@ const Index = () => {
     if (totalMinutes <= 0) {
       toast({
         title: "Erro",
-        description: "Por favor, informe um tempo válido.",
+        description: "Por favor, preencha o Tempo.",
         variant: "destructive",
       });
       return;
     }
 
-    setManualResult({ distance, duration: totalMinutes });
+    // Cálculo da Receita: (Km * PreçoKm) + (MinutosTotais * PreçoPorMinuto)
+    const precoMinuto = settings.valorHora / 60;
+    let valorBruto = (km * settings.precoKm) + (totalMinutes * precoMinuto);
+    let minimoAplicado = false;
+
+    if (valorBruto < settings.valorMinimo) {
+      valorBruto = settings.valorMinimo;
+      minimoAplicado = true;
+    }
+
+    // Cálculo dos Custos
+    const litrosUsados = km / settings.consumoMoto;
+    const custoCombustivel = litrosUsados * settings.precoGasolina;
+    const custoManutencao = km * settings.manutencao;
+    const custoDepreciacao = km * settings.depreciacao;
+    const custoTotal = custoCombustivel + custoManutencao + custoDepreciacao;
+
+    // Lucro Líquido
+    const lucroLiquido = valorBruto - custoTotal;
+
+    setResult({
+      valorFinal: valorBruto,
+      minimoAplicado,
+      custoCombustivel,
+      litrosUsados,
+      custoManutencao,
+      custoDepreciacao,
+      custoTotal,
+      lucroLiquido,
+      distancia: km,
+      tempoTotal: totalMinutes,
+    });
+
     toast({
       title: "Sucesso!",
-      description: "Frete calculado com sucesso.",
+      description: "Valor calculado com sucesso.",
     });
   };
 
@@ -101,33 +141,36 @@ const Index = () => {
         onSettingsChange={setSettings}
       />
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="grid gap-6">
-          <ManualCalculation
-            distance={manualDistance}
-            hours={manualHours}
-            minutes={manualMinutes}
-            onDistanceChange={setManualDistance}
-            onHoursChange={setManualHours}
-            onMinutesChange={setManualMinutes}
-            onCalculate={handleManualCalculate}
-            isCalculating={false}
+      <main className="container mx-auto px-4 py-8 max-w-lg">
+        <div className="space-y-6">
+          {/* Banner Topo */}
+          <ImageBanner 
+            imageUrl="/placeholder.svg"
+            link="https://wa.me/5547991508563?text=Olá!%20Gostaria%20de%20solicitar%20um%20orçamento."
+            alt="Solicite Orçamento no WhatsApp"
           />
 
-          {/* Ad Banner */}
-          <AdBanner />
+          {/* Calculadora */}
+          <FreightCalculator
+            distance={distance}
+            hours={hours}
+            minutes={minutes}
+            onDistanceChange={setDistance}
+            onHoursChange={setHours}
+            onMinutesChange={setMinutes}
+            onCalculate={handleCalculate}
+          />
 
-          {/* Result Display */}
-          {manualResult && (
-            <ResultDisplay 
-              totalDistance={manualResult.distance} 
-              totalDuration={manualResult.duration}
-              settings={settings} 
-            />
-          )}
+          {/* Resultado */}
+          {result && <FreightResult result={result} />}
 
-          {/* Second Ad Banner */}
-          <AdBanner />
+          {/* Banner Rodapé */}
+          <TextBanner 
+            imageUrl="/placeholder.svg"
+            title="VISITE NOSSO SITE OFICIAL"
+            subtitle="Soluções logísticas completas para você."
+            link="https://entregasitajai.com/"
+          />
         </div>
       </main>
 
