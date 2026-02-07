@@ -1,4 +1,4 @@
-import { Settings, Bike, Moon, Sun } from 'lucide-react';
+import { Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
@@ -7,37 +7,22 @@ interface HeaderProps {
   onToggleTheme: () => void;
 }
 
-export const Header = ({ onSettingsClick, isDark, onToggleTheme }: HeaderProps) => {
+export const Header = ({ onSettingsClick }: HeaderProps) => {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-card/80 backdrop-blur-xl">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-4xl">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-glow">
-            <Bike className="w-5 h-5 text-primary-foreground" />
-          </div>
+    <header className="w-full bg-card border-b border-border">
+      <div className="container mx-auto px-4 max-w-lg">
+        <div className="flex justify-between items-center py-4">
           <div>
-            <h1 className="text-lg font-bold text-foreground">Calculadora de Frete</h1>
-            <p className="text-xs text-muted-foreground">Entregas Itajaí</p>
+            <h1 className="text-xl font-bold text-primary tracking-tight">ENTREGAS ITAJAÍ</h1>
+            <p className="text-xs text-muted-foreground">Calculadora de Frete</p>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-1">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={onToggleTheme}
-            className="hover:bg-primary/10 hover:text-primary transition-colors"
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </Button>
-          
           <Button 
             variant="ghost" 
             size="icon"
             onClick={onSettingsClick}
-            className="hover:bg-primary/10 hover:text-primary transition-colors"
+            className="bg-muted hover:bg-muted/80 text-muted-foreground rounded-lg transition-colors"
           >
-            <Settings className="w-5 h-5" />
+            <Settings2 className="w-5 h-5" />
           </Button>
         </div>
       </div>
