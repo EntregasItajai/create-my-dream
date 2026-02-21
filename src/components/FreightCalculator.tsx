@@ -1,5 +1,6 @@
-import { Calculator } from 'lucide-react';
+import { Calculator, Bike, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { VehicleType } from '@/data/maintenanceItems';
 
 interface FreightCalculatorProps {
   distance: string;
@@ -9,22 +10,23 @@ interface FreightCalculatorProps {
   onHoursChange: (value: string) => void;
   onMinutesChange: (value: string) => void;
   onCalculate: () => void;
+  vehicleType: VehicleType;
 }
 
 export const FreightCalculator = ({
-  distance,
-  hours,
-  minutes,
-  onDistanceChange,
-  onHoursChange,
-  onMinutesChange,
-  onCalculate,
+  distance, hours, minutes,
+  onDistanceChange, onHoursChange, onMinutesChange,
+  onCalculate, vehicleType,
 }: FreightCalculatorProps) => {
+  const VehicleIcon = vehicleType === 'moto' ? Bike : Car;
+  const vehicleLabel = vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro';
+
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
       <div className="p-6">
-        <h2 className="text-center text-muted-foreground text-sm mb-6 uppercase tracking-wider font-medium">
-          Dados da Viagem
+        <h2 className="text-center text-muted-foreground text-sm mb-6 uppercase tracking-wider font-medium flex items-center justify-center gap-2">
+          <VehicleIcon className="w-4 h-4" />
+          Dados da Viagem — {vehicleLabel}
         </h2>
         
         <div className="space-y-5">
@@ -76,7 +78,7 @@ export const FreightCalculator = ({
             </div>
           </div>
 
-          {/* Botão Calcular - VERDE para destaque */}
+          {/* Botão Calcular */}
           <Button
             onClick={onCalculate}
             className="w-full h-16 text-lg font-bold bg-secondary hover:bg-secondary/90 transition-all shadow-glow text-secondary-foreground flex items-center justify-center gap-3 rounded-lg"

@@ -1,4 +1,4 @@
-import { Fuel, Wrench, TrendingDown, TrendingUp, AlertTriangle, Eye, EyeOff } from 'lucide-react';
+import { Fuel, Wrench, TrendingDown, TrendingUp, AlertTriangle, Eye, EyeOff, Bike, Car } from 'lucide-react';
 import { CalculationResult } from '@/pages/Index';
 import { useState } from 'react';
 
@@ -13,9 +13,19 @@ export const FreightResult = ({ result }: FreightResultProps) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const vehicleLabel = result.vehicleType === 'moto' ? '🏍️ MOTO' : '🚗 HB20/ONIX';
+
   return (
     <div className="bg-input rounded-xl border border-border overflow-hidden animate-fade-in">
       <div className="p-6 space-y-6">
+        {/* Vehicle badge */}
+        <div className="flex justify-center">
+          <span className="inline-flex items-center gap-1.5 bg-secondary/20 text-secondary text-xs font-bold px-3 py-1 rounded-full border border-secondary/30">
+            {result.vehicleType === 'moto' ? <Bike className="w-3 h-3" /> : <Car className="w-3 h-3" />}
+            Cálculo {vehicleLabel}
+          </span>
+        </div>
+
         {/* Valor Final */}
         <div className="text-center">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">
@@ -38,7 +48,6 @@ export const FreightResult = ({ result }: FreightResultProps) => {
             Seus Custos (Estimativa)
           </p>
           <div className="grid grid-cols-3 gap-2">
-            {/* Combustível */}
             <div className="bg-card p-3 rounded-lg border border-rose-900/30 text-center">
               <div className="flex justify-center mb-1">
                 <Fuel className="w-4 h-4 text-rose-400" />
@@ -50,7 +59,6 @@ export const FreightResult = ({ result }: FreightResultProps) => {
               </p>
             </div>
 
-            {/* Manutenção */}
             <div className="bg-card p-3 rounded-lg border border-orange-900/30 text-center">
               <div className="flex justify-center mb-1">
                 <Wrench className="w-4 h-4 text-orange-400" />
@@ -59,7 +67,6 @@ export const FreightResult = ({ result }: FreightResultProps) => {
               <p className="text-sm font-bold text-orange-300">{formatCurrency(result.custoManutencao)}</p>
             </div>
 
-            {/* Depreciação */}
             <div className="bg-card p-3 rounded-lg border border-amber-900/30 text-center">
               <div className="flex justify-center mb-1">
                 <TrendingDown className="w-4 h-4 text-amber-400" />

@@ -1,9 +1,9 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Fuel, Timer, Route, Gauge, Wrench, TrendingDown, Tag } from 'lucide-react';
+import { Fuel, Timer, Route, Gauge, Wrench, TrendingDown, Tag, Bike, Car } from 'lucide-react';
 import { Settings } from '@/pages/Index';
-import { ItemManutencao } from '@/data/maintenanceItems';
+import { ItemManutencao, VehicleType } from '@/data/maintenanceItems';
 import { MaintenanceSection } from '@/components/MaintenanceSection';
 
 interface SettingsDrawerProps {
@@ -14,16 +14,21 @@ interface SettingsDrawerProps {
   maintenanceItems: ItemManutencao[];
   onMaintenanceChange: (itens: ItemManutencao[]) => void;
   onMaintenanceRestore: () => void;
+  vehicleType: VehicleType;
 }
 
 export const SettingsDrawer = ({
   isOpen, onClose, settings, onSettingsChange,
   maintenanceItems, onMaintenanceChange, onMaintenanceRestore,
+  vehicleType,
 }: SettingsDrawerProps) => {
   const handleChange = (key: keyof Settings, value: string) => {
     const numValue = parseFloat(value) || 0;
     onSettingsChange({ ...settings, [key]: numValue });
   };
+
+  const vehicleLabel = vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro';
+  const VehicleIcon = vehicleType === 'moto' ? Bike : Car;
 
   const saleFields = [
     { key: 'precoKm' as keyof Settings, label: 'Preço / Km', icon: Route, prefix: 'R$', suffix: '/km', step: '0.10' },
@@ -43,9 +48,9 @@ export const SettingsDrawer = ({
         <SheetHeader className="mb-6">
           <SheetTitle className="text-xl font-bold text-foreground flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-              <Gauge className="w-4 h-4 text-secondary-foreground" />
+              <VehicleIcon className="w-4 h-4 text-secondary-foreground" />
             </div>
-            Configurações
+            Configurações {vehicleLabel}
           </SheetTitle>
         </SheetHeader>
 
@@ -124,7 +129,7 @@ export const SettingsDrawer = ({
             })}
           </div>
 
-          {/* Manutenção (read-only, fed by detailed section) */}
+          {/* Manutenção (read-only) */}
           <div className="mt-3 space-y-1">
             <Label className="text-[10px] text-muted-foreground uppercase flex items-center gap-1">
               <Wrench className="w-3 h-3 text-primary" />

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { SettingsDrawer } from '@/components/SettingsDrawer';
 import { FreightCalculator } from '@/components/FreightCalculator';
@@ -7,8 +7,11 @@ import { TextBanner } from '@/components/TextBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
 import {
+  VehicleType,
   ItemManutencao,
   ITENS_DEFAULTS,
+  loadVehicleType,
+  saveVehicleType,
   loadMaintenanceItems,
   saveMaintenanceItems,
   resetMaintenanceItems,
@@ -26,24 +29,40 @@ export interface Settings {
   manutencao: number;
 }
 
-const defaultSettings: Settings = {
-  precoKm: 0.50,
-  valorHora: 50.00,
-  valorMinimo: 15.00,
-  precoGasolina: 6.50,
-  consumoMoto: 37,
-  depreciacao: 0.10,
-  manutencao: 0.20,
+const DEFAULT_SETTINGS: Record<VehicleType, Settings> = {
+  moto: {
+    precoKm: 0.50,
+    valorHora: 50.00,
+    valorMinimo: 15.00,
+    precoGasolina: 6.70,
+    consumoMoto: 37,
+    depreciacao: 0.05,
+    manutencao: 0,
+  },
+  carro: {
+    precoKm: 1.40,
+    valorHora: 50.00,
+    valorMinimo: 25.00,
+    precoGasolina: 6.70,
+    consumoMoto: 11,
+    depreciacao: 0.18,
+    manutencao: 0,
+  },
 };
 
-const loadSettings = (): Settings => {
-  const stored = localStorage.getItem('freightSettings');
+const SETTINGS_KEYS: Record<VehicleType, string> = {
+  moto: 'freightSettings_moto',
+  carro: 'freightSettings_carro',
+};
+
+const loadSettings = (vehicle: VehicleType): Settings => {
+  const defaults = DEFAULT_SETTINGS[vehicle];
+  const stored = localStorage.getItem(SETTINGS_KEYS[vehicle]);
   if (stored) {
     try {
       const parsed = JSON.parse(stored);
-      // Sanitize: replace any NaN/undefined with defaults
-      const sanitized = { ...defaultSettings };
-      for (const key of Object.keys(defaultSettings) as (keyof Settings)[]) {
+      const sanitized = { ...defaults };
+      for (const key of Object.keys(defaults) as (keyof Settings)[]) {
         const val = parsed[key];
         if (typeof val === 'number' && !isNaN(val)) {
           sanitized[key] = val;
@@ -51,10 +70,10 @@ const loadSettings = (): Settings => {
       }
       return sanitized;
     } catch {
-      return defaultSettings;
+      return { ...defaults };
     }
   }
-  return defaultSettings;
+  return { ...defaults };
 };
 
 export interface MaintenanceBreakdown {
@@ -74,17 +93,33 @@ export interface CalculationResult {
   distancia: number;
   tempoTotal: number;
   manutencaoDetalhada: MaintenanceBreakdown[];
+  vehicleType: VehicleType;
 }
 
 const Index = () => {
   const { isDark, toggleTheme } = useTheme();
+  const [vehicleType, setVehicleType] = useState<VehicleType>(loadVehicleType);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [settings, setSettings] = useState<Settings>(loadSettings);
+  const [settings, setSettings] = useState<Settings>(() => loadSettings(vehicleType));
   const [distance, setDistance] = useState('');
   const [hours, setHours] = useState('');
   const [minutes, setMinutes] = useState('');
   const [result, setResult] = useState<CalculationResult | null>(null);
-  const [maintenanceItems, setMaintenanceItems] = useState<ItemManutencao[]>(loadMaintenanceItems);
+  const [maintenanceItems, setMaintenanceItems] = useState<ItemManutencao[]>(() => loadMaintenanceItems(vehicleType));
+
+  // Switch vehicle
+  const handleVehicleChange = useCallback((type: VehicleType) => {
+    if (type === vehicleType) return;
+    setVehicleType(type);
+    saveVehicleType(type);
+    const newSettings = loadSettings(type);
+    const newItems = loadMaintenanceItems(type);
+    const maintenanceTotal = calcularManutencaoTotalKm(newItems);
+    setSettings({ ...newSettings, manutencao: parseFloat(maintenanceTotal.toFixed(4)) });
+    setMaintenanceItems(newItems);
+    setResult(null);
+    toast({ title: type === 'moto' ? '🏍️ Moto' : '🚗 Carro', description: `Configurações de ${type} carregadas.` });
+  }, [vehicleType]);
 
   // Sync maintenance total to settings
   useEffect(() => {
@@ -94,18 +129,18 @@ const Index = () => {
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('freightSettings', JSON.stringify(settings));
-  }, [settings]);
+    localStorage.setItem(SETTINGS_KEYS[vehicleType], JSON.stringify(settings));
+  }, [settings, vehicleType]);
 
   const handleMaintenanceChange = (itens: ItemManutencao[]) => {
     setMaintenanceItems(itens);
-    saveMaintenanceItems(itens);
+    saveMaintenanceItems(itens, vehicleType);
   };
 
   const handleMaintenanceRestore = () => {
-    resetMaintenanceItems();
-    setMaintenanceItems([...ITENS_DEFAULTS]);
-    toast({ title: "Restaurado!", description: "Valores de manutenção restaurados ao padrão." });
+    resetMaintenanceItems(vehicleType);
+    setMaintenanceItems([...ITENS_DEFAULTS[vehicleType]]);
+    toast({ title: "Restaurado!", description: `Manutenção ${vehicleType} restaurada ao padrão.` });
   };
 
   const handleCalculate = () => {
@@ -141,7 +176,6 @@ const Index = () => {
     const custoTotal = custoCombustivel + custoManutencao + custoDepreciacao;
     const lucroLiquido = valorBruto - custoTotal;
 
-    // Detalhamento por item
     const manutencaoDetalhada: MaintenanceBreakdown[] = maintenanceItems.map(item => ({
       nome: item.nome,
       custoRota: calcularCustoKm(item) * km,
@@ -159,6 +193,7 @@ const Index = () => {
       distancia: km,
       tempoTotal: totalMinutes,
       manutencaoDetalhada,
+      vehicleType,
     });
 
     toast({ title: "Sucesso!", description: "Valor calculado com sucesso." });
@@ -166,7 +201,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onSettingsClick={() => setSettingsOpen(true)} isDark={isDark} onToggleTheme={toggleTheme} />
+      <Header
+        onSettingsClick={() => setSettingsOpen(true)}
+        isDark={isDark}
+        onToggleTheme={toggleTheme}
+        vehicleType={vehicleType}
+        onVehicleChange={handleVehicleChange}
+      />
       
       <SettingsDrawer
         isOpen={settingsOpen}
@@ -176,6 +217,7 @@ const Index = () => {
         maintenanceItems={maintenanceItems}
         onMaintenanceChange={handleMaintenanceChange}
         onMaintenanceRestore={handleMaintenanceRestore}
+        vehicleType={vehicleType}
       />
 
       <main className="container mx-auto px-4 py-6 max-w-lg">
@@ -188,6 +230,7 @@ const Index = () => {
             onHoursChange={setHours}
             onMinutesChange={setMinutes}
             onCalculate={handleCalculate}
+            vehicleType={vehicleType}
           />
 
           {result && <FreightResult result={result} />}
