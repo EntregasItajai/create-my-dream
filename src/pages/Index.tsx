@@ -40,7 +40,7 @@ const DEFAULT_SETTINGS: Record<VehicleType, Settings> = {
     manutencao: 0,
   },
   carro: {
-    precoKm: 1.40,
+    precoKm: 1.0845,
     valorHora: 50.00,
     valorMinimo: 25.00,
     precoGasolina: 6.70,
