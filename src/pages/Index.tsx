@@ -3,6 +3,7 @@ import { Header } from '@/components/Header';
 import { SettingsDrawer } from '@/components/SettingsDrawer';
 import { FreightCalculator } from '@/components/FreightCalculator';
 import { FreightResult } from '@/components/FreightResult';
+import { KmControlDialog } from '@/components/KmControlDialog';
 import { TextBanner } from '@/components/TextBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
@@ -100,6 +101,7 @@ const Index = () => {
   const { isDark, toggleTheme } = useTheme();
   const [vehicleType, setVehicleType] = useState<VehicleType>(loadVehicleType);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [kmControlOpen, setKmControlOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings(vehicleType));
   const [distance, setDistance] = useState('');
   const [hours, setHours] = useState('');
@@ -230,10 +232,18 @@ const Index = () => {
             onHoursChange={setHours}
             onMinutesChange={setMinutes}
             onCalculate={handleCalculate}
+            onOpenKmControl={() => setKmControlOpen(true)}
             vehicleType={vehicleType}
           />
 
           {result && <FreightResult result={result} />}
+
+          <KmControlDialog
+            isOpen={kmControlOpen}
+            onClose={() => setKmControlOpen(false)}
+            vehicleType={vehicleType}
+            settings={settings}
+          />
 
           <TextBanner link="https://www.instagram.com/entregasitajai.com.br/" />
         </div>
