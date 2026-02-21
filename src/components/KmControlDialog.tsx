@@ -47,6 +47,19 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
 
   const formatKm = (v: number) => v.toLocaleString('pt-BR');
 
+  // Format number string with dot separators for display
+  const formatInputDisplay = (raw: string): string => {
+    const num = raw.replace(/\D/g, '');
+    if (!num) return '';
+    return parseInt(num, 10).toLocaleString('pt-BR');
+  };
+
+  const handleKmInput = (value: string, setter: (v: string) => void) => {
+    // Strip non-digits, store raw number
+    const raw = value.replace(/\D/g, '');
+    setter(raw);
+  };
+
   useEffect(() => {
     if (isOpen) {
       setRecords(loadKmRecords(vehicleType));
@@ -55,8 +68,8 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
 
   // Auto-calc kmRodado
   useEffect(() => {
-    const ini = parseFloat(kmInicial);
-    const fim = parseFloat(kmFinal);
+    const ini = parseInt(kmInicial, 10);
+    const fim = parseInt(kmFinal, 10);
     if (!isNaN(ini) && !isNaN(fim) && fim > ini) {
       setKmRodado((fim - ini).toString());
     }
@@ -84,7 +97,7 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
   };
 
   const handleSave = () => {
-    const km = parseFloat(kmRodado);
+    const km = parseInt(kmRodado, 10);
     if (isNaN(km) || km <= 0) {
       toast({ title: 'Erro', description: 'KM Rodado deve ser maior que 0.', variant: 'destructive' });
       return;
@@ -93,8 +106,8 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
     const record: KmRecord = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       data: format(formDate, 'yyyy-MM-dd'),
-      kmInicial: kmInicial ? parseFloat(kmInicial) : undefined,
-      kmFinal: kmFinal ? parseFloat(kmFinal) : undefined,
+      kmInicial: kmInicial ? parseInt(kmInicial, 10) : undefined,
+      kmFinal: kmFinal ? parseInt(kmFinal, 10) : undefined,
       kmRodado: km,
       custoEstimado: calcularCustoEstimado(km, settings),
     };
@@ -216,30 +229,33 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
               <div>
                 <label className="text-[10px] text-muted-foreground font-medium uppercase block mb-1">KM Inicial</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="0"
-                  value={kmInicial}
-                  onChange={(e) => setKmInicial(e.target.value)}
+                  value={formatInputDisplay(kmInicial)}
+                  onChange={(e) => handleKmInput(e.target.value, setKmInicial)}
                   className="w-full bg-input border border-border text-foreground text-center text-sm font-bold rounded-lg py-2 px-2 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
                 />
               </div>
               <div>
                 <label className="text-[10px] text-muted-foreground font-medium uppercase block mb-1">KM Final</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="0"
-                  value={kmFinal}
-                  onChange={(e) => setKmFinal(e.target.value)}
+                  value={formatInputDisplay(kmFinal)}
+                  onChange={(e) => handleKmInput(e.target.value, setKmFinal)}
                   className="w-full bg-input border border-border text-foreground text-center text-sm font-bold rounded-lg py-2 px-2 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
                 />
               </div>
               <div>
                 <label className="text-[10px] text-primary font-bold uppercase block mb-1">KM Rodado</label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="0"
-                  value={kmRodado}
-                  onChange={(e) => setKmRodado(e.target.value)}
+                  value={formatInputDisplay(kmRodado)}
+                  onChange={(e) => handleKmInput(e.target.value, setKmRodado)}
                   className="w-full bg-input border border-border text-foreground text-center text-sm font-bold rounded-lg py-2 px-2 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
                 />
               </div>
