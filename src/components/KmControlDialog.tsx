@@ -45,6 +45,8 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
   const [kmFinal, setKmFinal] = useState('');
   const [kmRodado, setKmRodado] = useState('');
 
+  const formatKm = (v: number) => v.toLocaleString('pt-BR');
+
   useEffect(() => {
     if (isOpen) {
       setRecords(loadKmRecords(vehicleType));
@@ -158,14 +160,14 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
                       <div className="font-semibold text-foreground">
                         {format(d, 'dd/MM', { locale: ptBR })}
                       </div>
-                      <div className="text-muted-foreground text-xs">
+                    <div className="text-muted-foreground text-xs">
                         {r.kmInicial != null && r.kmFinal != null
-                          ? `${r.kmInicial.toLocaleString('pt-BR')} → ${r.kmFinal.toLocaleString('pt-BR')}`
+                          ? `${formatKm(r.kmInicial)} → ${formatKm(r.kmFinal)}`
                           : '—'}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-foreground">{r.kmRodado.toLocaleString('pt-BR')} km</div>
+                      <div className="font-bold text-foreground">{formatKm(r.kmRodado)} km</div>
                       <div className="text-xs text-primary">{formatCurrency(r.custoEstimado)}</div>
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(r.id)}>
@@ -181,7 +183,7 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
         {/* Totals */}
         <div className="flex justify-between bg-muted rounded-lg p-3 text-sm font-semibold">
           <span className="text-muted-foreground">Total do mês:</span>
-          <span className="text-foreground">{totals.totalKm.toLocaleString('pt-BR')} km · {formatCurrency(totals.totalCusto)}</span>
+          <span className="text-foreground">{formatKm(totals.totalKm)} km · {formatCurrency(totals.totalCusto)}</span>
         </div>
 
         {/* Add form */}
