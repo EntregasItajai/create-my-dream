@@ -33,7 +33,7 @@ const DEFAULT_SETTINGS: Record<VehicleType, Settings> = {
   moto: {
     precoKm: 0.50,
     valorHora: 50.00,
-    valorMinimo: 15.00,
+    valorMinimo: 10.00,
     precoGasolina: 6.70,
     consumoMoto: 37,
     depreciacao: 0.05,
@@ -42,7 +42,7 @@ const DEFAULT_SETTINGS: Record<VehicleType, Settings> = {
   carro: {
     precoKm: 1.0845,
     valorHora: 50.00,
-    valorMinimo: 25.00,
+    valorMinimo: 10.00,
     precoGasolina: 6.70,
     consumoMoto: 11,
     depreciacao: 0.18,
