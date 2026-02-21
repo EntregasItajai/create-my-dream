@@ -17,7 +17,7 @@ export const Header = ({ onSettingsClick, vehicleType, onVehicleChange }: Header
         <div className="flex justify-between items-center py-4">
           <div>
             <h1 className="text-xl font-bold text-secondary tracking-tight">ENTREGAS ITAJAÍ</h1>
-            <p className="text-xs text-muted-foreground">Calculadora de Rota</p>
+            <p className="text-sm font-semibold text-foreground">Calculadora de Rota</p>
           </div>
 
           <div className="flex items-center gap-2">
