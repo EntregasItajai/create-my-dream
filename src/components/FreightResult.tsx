@@ -14,6 +14,7 @@ export const FreightResult = ({ result }: FreightResultProps) => {
   };
 
   const vehicleLabel = result.vehicleType === 'moto' ? '🏍️ MOTO' : '🚗 HB20/ONIX';
+  const isCostMode = result.modo === 'custos';
 
   return (
     <div className="bg-input rounded-xl border border-border overflow-hidden animate-fade-in">
@@ -22,19 +23,19 @@ export const FreightResult = ({ result }: FreightResultProps) => {
         <div className="flex justify-center">
           <span className="inline-flex items-center gap-1.5 bg-secondary/20 text-secondary text-xs font-bold px-3 py-1 rounded-full border border-secondary/30">
             {result.vehicleType === 'moto' ? <Bike className="w-3 h-3" /> : <Car className="w-3 h-3" />}
-            Cálculo {vehicleLabel}
+            {isCostMode ? 'Custos' : 'Cálculo'} {vehicleLabel}
           </span>
         </div>
 
-        {/* Valor Final */}
+        {/* Valor Final / Custo Total */}
         <div className="text-center">
           <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">
-            Valor Final ao Cliente
+            {isCostMode ? 'Custo Total da Rota' : 'Valor Final ao Cliente'}
           </p>
           <div className="text-6xl font-bold text-foreground tracking-tighter drop-shadow-2xl">
             {formatCurrency(result.valorFinal)}
           </div>
-          {result.minimoAplicado && (
+          {!isCostMode && result.minimoAplicado && (
             <span className="inline-flex items-center gap-2 bg-amber-900/50 text-amber-400 text-xs px-4 py-2 rounded-full mt-4 border border-amber-700/50 font-bold">
               <AlertTriangle className="w-4 h-4" />
               Valor Mínimo Aplicado
@@ -103,17 +104,19 @@ export const FreightResult = ({ result }: FreightResultProps) => {
           </div>
         )}
 
-        {/* Lucro Líquido */}
-        <div className={`p-4 rounded-lg text-center ${result.lucroLiquido >= 0 ? 'bg-emerald-900/20 border border-emerald-900/50' : 'bg-muted border border-border'}`}>
-          <div className="flex justify-center items-center gap-2 mb-1">
-            <TrendingUp className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm uppercase font-bold text-emerald-400">Lucro Líquido</span>
+        {/* Lucro Líquido - only in valor mode */}
+        {!isCostMode && (
+          <div className={`p-4 rounded-lg text-center ${result.lucroLiquido >= 0 ? 'bg-emerald-900/20 border border-emerald-900/50' : 'bg-muted border border-border'}`}>
+            <div className="flex justify-center items-center gap-2 mb-1">
+              <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <span className="text-sm uppercase font-bold text-emerald-400">Lucro Líquido</span>
+            </div>
+            <p className={`text-3xl font-bold ${result.lucroLiquido >= 0 ? 'text-emerald-200' : 'text-muted-foreground'}`}>
+              {formatCurrency(result.lucroLiquido)}
+            </p>
+            <p className="text-[10px] text-emerald-400/60 mt-1">Dinheiro livre no bolso</p>
           </div>
-          <p className={`text-3xl font-bold ${result.lucroLiquido >= 0 ? 'text-emerald-200' : 'text-muted-foreground'}`}>
-            {formatCurrency(result.lucroLiquido)}
-          </p>
-          <p className="text-[10px] text-emerald-400/60 mt-1">Dinheiro livre no bolso</p>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Calculator, Bike, Car, ClipboardList } from 'lucide-react';
+import { Calculator, Bike, Car, ClipboardList, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VehicleType } from '@/data/maintenanceItems';
 
@@ -10,6 +10,7 @@ interface FreightCalculatorProps {
   onHoursChange: (value: string) => void;
   onMinutesChange: (value: string) => void;
   onCalculate: () => void;
+  onCalculateCosts: () => void;
   onOpenKmControl: () => void;
   vehicleType: VehicleType;
 }
@@ -17,7 +18,7 @@ interface FreightCalculatorProps {
 export const FreightCalculator = ({
   distance, hours, minutes,
   onDistanceChange, onHoursChange, onMinutesChange,
-  onCalculate, onOpenKmControl, vehicleType,
+  onCalculate, onCalculateCosts, onOpenKmControl, vehicleType,
 }: FreightCalculatorProps) => {
   const VehicleIcon = vehicleType === 'moto' ? Bike : Car;
   const vehicleLabel = vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro';
@@ -86,6 +87,15 @@ export const FreightCalculator = ({
           >
             <Calculator className="w-6 h-6" />
             CALCULAR VALOR
+          </Button>
+
+          <Button
+            onClick={onCalculateCosts}
+            variant="outline"
+            className="w-full h-14 text-base font-bold transition-all flex items-center justify-center gap-3 rounded-lg border-primary/30 text-primary hover:bg-primary/10"
+          >
+            <Coins className="w-5 h-5" />
+            CALCULAR CUSTOS
           </Button>
 
           <Button

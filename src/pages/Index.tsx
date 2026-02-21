@@ -83,6 +83,7 @@ export interface MaintenanceBreakdown {
 }
 
 export interface CalculationResult {
+  modo: 'valor' | 'custos';
   valorFinal: number;
   minimoAplicado: boolean;
   custoCombustivel: number;
@@ -184,6 +185,7 @@ const Index = () => {
     }));
 
     setResult({
+      modo: 'valor',
       valorFinal: valorBruto,
       minimoAplicado,
       custoCombustivel,
@@ -199,6 +201,45 @@ const Index = () => {
     });
 
     toast({ title: "Sucesso!", description: "Valor calculado com sucesso." });
+  };
+
+  const handleCalculateCosts = () => {
+    const km = parseFloat(distance);
+
+    if (isNaN(km) || km <= 0) {
+      toast({ title: "Erro", description: "Por favor, preencha a Distância.", variant: "destructive" });
+      return;
+    }
+
+    const consumo = settings.consumoMoto > 0 ? settings.consumoMoto : 1;
+    const litrosUsados = km / consumo;
+    const custoCombustivel = litrosUsados * (settings.precoGasolina || 0);
+    const custoManutencao = km * (settings.manutencao || 0);
+    const custoDepreciacao = km * (settings.depreciacao || 0);
+    const custoTotal = custoCombustivel + custoManutencao + custoDepreciacao;
+
+    const manutencaoDetalhada: MaintenanceBreakdown[] = maintenanceItems.map(item => ({
+      nome: item.nome,
+      custoRota: calcularCustoKm(item) * km,
+    }));
+
+    setResult({
+      modo: 'custos',
+      valorFinal: custoTotal,
+      minimoAplicado: false,
+      custoCombustivel,
+      litrosUsados,
+      custoManutencao,
+      custoDepreciacao,
+      custoTotal,
+      lucroLiquido: 0,
+      distancia: km,
+      tempoTotal: 0,
+      manutencaoDetalhada,
+      vehicleType,
+    });
+
+    toast({ title: "Sucesso!", description: "Custos calculados com sucesso." });
   };
 
   return (
@@ -232,6 +273,7 @@ const Index = () => {
             onHoursChange={setHours}
             onMinutesChange={setMinutes}
             onCalculate={handleCalculate}
+            onCalculateCosts={handleCalculateCosts}
             onOpenKmControl={() => setKmControlOpen(true)}
             vehicleType={vehicleType}
           />
