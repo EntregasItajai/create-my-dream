@@ -40,7 +40,16 @@ const loadSettings = (): Settings => {
   const stored = localStorage.getItem('freightSettings');
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // Sanitize: replace any NaN/undefined with defaults
+      const sanitized = { ...defaultSettings };
+      for (const key of Object.keys(defaultSettings) as (keyof Settings)[]) {
+        const val = parsed[key];
+        if (typeof val === 'number' && !isNaN(val)) {
+          sanitized[key] = val;
+        }
+      }
+      return sanitized;
     } catch {
       return defaultSettings;
     }
@@ -115,8 +124,8 @@ const Index = () => {
       return;
     }
 
-    const precoMinuto = settings.valorHora / 60;
-    let valorBruto = (km * settings.precoKm) + (totalMinutes * precoMinuto);
+    const precoMinuto = (settings.valorHora || 0) / 60;
+    let valorBruto = (km * (settings.precoKm || 0)) + (totalMinutes * precoMinuto);
     let minimoAplicado = false;
 
     if (valorBruto < settings.valorMinimo) {
@@ -124,10 +133,11 @@ const Index = () => {
       minimoAplicado = true;
     }
 
-    const litrosUsados = km / settings.consumoMoto;
-    const custoCombustivel = litrosUsados * settings.precoGasolina;
-    const custoManutencao = km * settings.manutencao;
-    const custoDepreciacao = km * settings.depreciacao;
+    const consumo = settings.consumoMoto > 0 ? settings.consumoMoto : 1;
+    const litrosUsados = km / consumo;
+    const custoCombustivel = litrosUsados * (settings.precoGasolina || 0);
+    const custoManutencao = km * (settings.manutencao || 0);
+    const custoDepreciacao = km * (settings.depreciacao || 0);
     const custoTotal = custoCombustivel + custoManutencao + custoDepreciacao;
     const lucroLiquido = valorBruto - custoTotal;
 
