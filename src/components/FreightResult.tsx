@@ -1,11 +1,14 @@
-import { Fuel, Wrench, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Fuel, Wrench, TrendingDown, TrendingUp, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { CalculationResult } from '@/pages/Index';
+import { useState } from 'react';
 
 interface FreightResultProps {
   result: CalculationResult;
 }
 
 export const FreightResult = ({ result }: FreightResultProps) => {
+  const [showDetail, setShowDetail] = useState(false);
+
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
@@ -66,6 +69,32 @@ export const FreightResult = ({ result }: FreightResultProps) => {
             </div>
           </div>
         </div>
+
+        {/* Detalhamento Manutenção */}
+        {result.manutencaoDetalhada && result.manutencaoDetalhada.length > 0 && (
+          <div>
+            <button
+              onClick={() => setShowDetail(!showDetail)}
+              className="w-full flex items-center justify-between text-[10px] font-bold text-orange-400 uppercase tracking-wider py-1"
+            >
+              <span className="flex items-center gap-1">
+                <Wrench className="w-3 h-3" /> Detalhamento Manutenção
+              </span>
+              {showDetail ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            </button>
+
+            {showDetail && (
+              <div className="grid grid-cols-2 gap-1 mt-2 animate-fade-in">
+                {result.manutencaoDetalhada.map((item, i) => (
+                  <div key={i} className="flex justify-between items-center bg-card rounded px-2 py-1.5 border border-border">
+                    <span className="text-[9px] text-muted-foreground truncate mr-1 flex-1">{item.nome}</span>
+                    <span className="text-[10px] font-bold text-orange-300 whitespace-nowrap">{formatCurrency(item.custoRota)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Lucro Líquido */}
         <div className={`p-4 rounded-lg text-center ${result.lucroLiquido >= 0 ? 'bg-emerald-900/20 border border-emerald-900/50' : 'bg-muted border border-border'}`}>

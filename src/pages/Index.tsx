@@ -6,6 +6,15 @@ import { FreightResult } from '@/components/FreightResult';
 import { TextBanner } from '@/components/TextBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
+import {
+  ItemManutencao,
+  ITENS_DEFAULTS,
+  loadMaintenanceItems,
+  saveMaintenanceItems,
+  resetMaintenanceItems,
+  calcularCustoKm,
+  calcularManutencaoTotalKm,
+} from '@/data/maintenanceItems';
 
 export interface Settings {
   precoKm: number;
@@ -39,6 +48,11 @@ const loadSettings = (): Settings => {
   return defaultSettings;
 };
 
+export interface MaintenanceBreakdown {
+  nome: string;
+  custoRota: number;
+}
+
 export interface CalculationResult {
   valorFinal: number;
   minimoAplicado: boolean;
@@ -50,6 +64,7 @@ export interface CalculationResult {
   lucroLiquido: number;
   distancia: number;
   tempoTotal: number;
+  manutencaoDetalhada: MaintenanceBreakdown[];
 }
 
 const Index = () => {
@@ -60,11 +75,29 @@ const Index = () => {
   const [hours, setHours] = useState('');
   const [minutes, setMinutes] = useState('');
   const [result, setResult] = useState<CalculationResult | null>(null);
+  const [maintenanceItems, setMaintenanceItems] = useState<ItemManutencao[]>(loadMaintenanceItems);
+
+  // Sync maintenance total to settings
+  useEffect(() => {
+    const total = calcularManutencaoTotalKm(maintenanceItems);
+    setSettings(prev => ({ ...prev, manutencao: parseFloat(total.toFixed(4)) }));
+  }, [maintenanceItems]);
 
   // Save settings to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('freightSettings', JSON.stringify(settings));
   }, [settings]);
+
+  const handleMaintenanceChange = (itens: ItemManutencao[]) => {
+    setMaintenanceItems(itens);
+    saveMaintenanceItems(itens);
+  };
+
+  const handleMaintenanceRestore = () => {
+    resetMaintenanceItems();
+    setMaintenanceItems([...ITENS_DEFAULTS]);
+    toast({ title: "Restaurado!", description: "Valores de manutenção restaurados ao padrão." });
+  };
 
   const handleCalculate = () => {
     const km = parseFloat(distance);
@@ -73,24 +106,15 @@ const Index = () => {
     const totalMinutes = (h * 60) + m;
 
     if (isNaN(km) || km <= 0) {
-      toast({
-        title: "Erro",
-        description: "Por favor, preencha a Distância.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Por favor, preencha a Distância.", variant: "destructive" });
       return;
     }
 
     if (totalMinutes <= 0) {
-      toast({
-        title: "Erro",
-        description: "Por favor, preencha o Tempo.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Por favor, preencha o Tempo.", variant: "destructive" });
       return;
     }
 
-    // Cálculo da Receita: (Km * PreçoKm) + (MinutosTotais * PreçoPorMinuto)
     const precoMinuto = settings.valorHora / 60;
     let valorBruto = (km * settings.precoKm) + (totalMinutes * precoMinuto);
     let minimoAplicado = false;
@@ -100,15 +124,18 @@ const Index = () => {
       minimoAplicado = true;
     }
 
-    // Cálculo dos Custos
     const litrosUsados = km / settings.consumoMoto;
     const custoCombustivel = litrosUsados * settings.precoGasolina;
     const custoManutencao = km * settings.manutencao;
     const custoDepreciacao = km * settings.depreciacao;
     const custoTotal = custoCombustivel + custoManutencao + custoDepreciacao;
-
-    // Lucro Líquido
     const lucroLiquido = valorBruto - custoTotal;
+
+    // Detalhamento por item
+    const manutencaoDetalhada: MaintenanceBreakdown[] = maintenanceItems.map(item => ({
+      nome: item.nome,
+      custoRota: calcularCustoKm(item) * km,
+    }));
 
     setResult({
       valorFinal: valorBruto,
@@ -121,12 +148,10 @@ const Index = () => {
       lucroLiquido,
       distancia: km,
       tempoTotal: totalMinutes,
+      manutencaoDetalhada,
     });
 
-    toast({
-      title: "Sucesso!",
-      description: "Valor calculado com sucesso.",
-    });
+    toast({ title: "Sucesso!", description: "Valor calculado com sucesso." });
   };
 
   return (
@@ -138,11 +163,13 @@ const Index = () => {
         onClose={() => setSettingsOpen(false)}
         settings={settings}
         onSettingsChange={setSettings}
+        maintenanceItems={maintenanceItems}
+        onMaintenanceChange={handleMaintenanceChange}
+        onMaintenanceRestore={handleMaintenanceRestore}
       />
 
       <main className="container mx-auto px-4 py-6 max-w-lg">
         <div className="space-y-6">
-          {/* Calculadora */}
           <FreightCalculator
             distance={distance}
             hours={hours}
@@ -153,13 +180,9 @@ const Index = () => {
             onCalculate={handleCalculate}
           />
 
-          {/* Resultado */}
           {result && <FreightResult result={result} />}
 
-          {/* Banner Rodapé */}
-          <TextBanner 
-            link="https://www.instagram.com/entregasitajai.com.br/"
-          />
+          <TextBanner link="https://www.instagram.com/entregasitajai.com.br/" />
         </div>
       </main>
     </div>
