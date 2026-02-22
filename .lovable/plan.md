@@ -1,74 +1,96 @@
+# Plano Freemium: Calculadoras Gratis + Premium com Login
 
-## Controle Diario de Quilometragem
+## Resumo
 
-Adicionar uma funcionalidade de registro diario de quilometragem, onde o usuario pode anotar a km rodada por dia e acompanhar um historico mensal.
+Transformar o app em um modelo freemium onde:
 
-### Como vai funcionar
+- **Gratis**: Calculadora de frete e calculadora de custos (funcionam sem login)
+- **Premium**: Controle de KM + Monitorar Manutencoes (requer login e liberacao manual)
 
-- Um botao **"Controle de KM"** (com icone de clipboard/lista) aparece abaixo dos botoes de calculo
-- Ao clicar, abre um **Dialog** (modal) com:
-  - Lista de registros do mes atual
-  - Botao para adicionar novo registro
-  - Totalizador do mes (km total rodada e custo total estimado)
+O pagamento sera via PIX, com liberacao manual do acesso premium por voce (admin).
 
-### Formulario de novo registro
+## O que precisa ser feito
 
-Cada registro tera 4 campos:
-- **Data** -- pre-preenchida com a data de hoje
-- **KM Inicial** -- opcional
-- **KM Final** -- opcional
-- **KM Rodado** -- calculado automaticamente se inicial e final forem preenchidos, ou digitado manualmente
+### 1. Conectar Supabase (backend)
 
-Logica de preenchimento automatico:
-- Se o usuario preencher KM Inicial e KM Final, o KM Rodado e calculado automaticamente (final - inicial)
-- Se o usuario preencher apenas KM Rodado, funciona normalmente sem os outros campos
-- Pelo menos o KM Rodado deve ter valor > 0 para salvar
+O app atualmente e 100% local (localStorage). Para ter login e controle de assinatura, precisamos de um backend. Vou usar o Lovable Cloud (Supabase integrado) para:
 
-### Tela do historico
+- Autenticacao (login com email e Google)
+- Tabela de perfis de usuario
+- Tabela de roles/assinaturas para controlar quem e premium
 
-- Lista os registros do mes ordenados por data
-- Cada linha mostra: data, km inicial (se houver), km final (se houver), km rodado, custo estimado
-- No rodape: totais do mes (km total e custo total)
-- Seletor de mes/ano para navegar entre meses
-- Botao para excluir registros individuais
+### 2. Sistema de Autenticacao
 
-### Armazenamento
+- Pagina de login com email/senha e Google
+- Registro de novos usuarios
+- Botao de login/logout no header do app
 
-- Os registros serao salvos no `localStorage` separados por veiculo
-- Chave: `entregasItajai_controleKm_moto` e `entregasItajai_controleKm_carro`
-- Cada registro: `{ id, data, kmInicial?, kmFinal?, kmRodado, custoEstimado }`
-- O custo estimado e calculado no momento do registro usando os custos atuais (combustivel + manutencao + depreciacao)
+### 3. Controle de Acesso Premium
 
----
+- Tabela `user_roles` no banco para marcar quem e premium
+- Voce (admin) libera o acesso manualmente apos confirmar o PIX
+- Os botoes "Controle de KM" e "Monitorar Manutencoes" aparecem com um cadeado para usuarios gratuitos
+- Ao clicar no cadeado, aparece uma mensagem explicando como assinar (PIX + contato)
 
-### Detalhes tecnicos
+### 4. Fluxo do Usuario
 
-**1. Novo componente `src/components/KmControlDialog.tsx`**
-- Dialog (modal) com o formulario de registro e a lista de historico
-- Props: `isOpen`, `onClose`, `vehicleType`, `settings` (para calcular custos)
-- Usa o componente Dialog do shadcn/ui
-- Formulario com inputs para data, km inicial, km final, km rodado
-- useEffect para auto-calcular km rodado quando inicial e final mudam
-- Lista de registros com scroll
+```text
+Usuario abre o app
+  |
+  +-- Calculadoras funcionam normalmente (sem login)
+  |
+  +-- Clica em "Controle de KM" ou "Monitorar Manutencoes"
+       |
+       +-- Nao logado? --> Tela de login
+       |
+       +-- Logado mas nao premium? --> Mensagem "Assine para acessar"
+       |                               com instrucoes de PIX
+       |
+       +-- Logado e premium? --> Abre normalmente
+```
 
-**2. Novo arquivo `src/data/kmControl.ts`**
-- Interface `KmRecord` com os campos do registro
-- Funcoes para CRUD no localStorage: `loadKmRecords`, `saveKmRecord`, `deleteKmRecord`
-- Funcao para calcular custo estimado de um registro dado os settings
+### 5. Migracao de Dados
 
-**3. Atualizar `src/components/FreightCalculator.tsx`**
-- Adicionar botao "CONTROLE DE KM" abaixo do botao "CALCULAR VALOR"
-- Novo prop `onOpenKmControl`
+- Os dados que ja existem no localStorage continuam funcionando para as calculadoras
+- Quando o usuario logar e for premium, os dados de KM e manutencao podem continuar no localStorage (vinculados ao navegador) -- sem custo extra de banco
 
-**4. Atualizar `src/pages/Index.tsx`**
-- Estado para controlar abertura do dialog de controle
-- Renderizar o `KmControlDialog`
-- Passar settings e vehicleType para o dialog
+## Detalhes Tecnicos
 
-**Arquivos criados:**
-- `src/components/KmControlDialog.tsx`
-- `src/data/kmControl.ts`
+### Banco de Dados (Supabase)
 
-**Arquivos alterados:**
-- `src/components/FreightCalculator.tsx` -- novo botao
-- `src/pages/Index.tsx` -- estado e renderizacao do dialog
+**Tabela `profiles`:**
+
+- `id` (uuid, referencia auth.users)
+- `email` (text)
+- `display_name` (text, opcional)
+- `created_at` (timestamp)
+
+**Tabela `user_roles`:**
+
+- `id` (uuid)
+- `user_id` (uuid, referencia auth.users)
+- `role` (enum: 'admin', 'premium', 'user')
+- RLS policies para seguranca
+
+**Funcao `has_role`:** Security definer para verificar roles sem recursao RLS.
+
+### Novos Arquivos
+
+- `src/pages/Auth.tsx` -- pagina de login/registro
+- `src/contexts/AuthContext.tsx` -- contexto de autenticacao
+- `src/hooks/useSubscription.ts` -- hook para verificar se usuario e premium
+- `src/components/PremiumGate.tsx` -- componente que envolve features premium (mostra cadeado ou conteudo)
+
+### Arquivos Alterados
+
+- `src/pages/Index.tsx` -- integrar verificacao premium nos botoes de KM e manutencao
+- `src/components/Header.tsx` -- botao de login/logout e avatar do usuario
+- `src/components/FreightCalculator.tsx` -- visual de cadeado nos botoes premium
+- `src/App.tsx` -- adicionar rota /auth e AuthProvider
+
+### Prerequisito
+
+Sera necessario ativar o Lovable Cloud (Supabase) no projeto para ter o backend de autenticacao. Para login com Google, voce precisara configurar as credenciais OAuth no Google Cloud Console.  
+  
+OBS: o plano está bom, mas quero que até o usuário gratuíto faça login, pois quero saber quem e quantas pessoas estão usando o sistema  
+preciso tbm que vc gere uma instrução completa das tabelas que precisam ser criadas no supabase para esse sistema que montamos com todas essas autalizações
