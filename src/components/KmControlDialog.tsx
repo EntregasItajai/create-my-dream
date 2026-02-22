@@ -121,16 +121,19 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
     saveKmRecord(record, vehicleType);
     setRecords(loadKmRecords(vehicleType));
 
-    // Sync kmFinal with maintenance monitor kmAtual
+    // Sync with maintenance monitor: use the highest KM value available
     const kmFinalVal = kmFinal ? parseInt(kmFinal, 10) : 0;
-    if (kmFinalVal > 0) {
-      saveKmAtual(kmFinalVal);
-      const status = calcularStatusTodos(vehicleType, kmFinalVal);
+    const kmInicialVal = kmInicial ? parseInt(kmInicial, 10) : 0;
+    const kmParaMonitor = Math.max(kmFinalVal, kmInicialVal);
+
+    if (kmParaMonitor > 0) {
+      saveKmAtual(kmParaMonitor);
+      const status = calcularStatusTodos(vehicleType, kmParaMonitor);
       if (status.vencidos.length > 0 || status.proximos.length > 0) {
         setMaintenanceAlert({ vencidos: status.vencidos, proximos: status.proximos });
       } else {
         setMaintenanceAlert(null);
-        toast({ title: '✅ Registrado!', description: `${formatKm(km)} km · Manutenções em dia!` });
+        toast({ title: '✅ Registrado!', description: `${formatKm(km)} km · KM atual: ${formatKm(kmParaMonitor)} · Manutenções em dia!` });
       }
     } else {
       toast({ title: 'Registrado!', description: `${formatKm(km)} km adicionados.` });
