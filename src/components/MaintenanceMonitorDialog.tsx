@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List } from 'lucide-react';
+import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List, Settings, RotateCcw, Pencil } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,6 +10,7 @@ import { VehicleType } from '@/data/maintenanceItems';
 import {
   ITENS_PADRAO,
   Troca,
+  ItemPadrao,
   ItemStatus,
   loadKmAtual,
   saveKmAtual,
@@ -17,6 +18,9 @@ import {
   registrarTroca,
   deleteTroca,
   calcularStatusTodos,
+  loadItensPadrao,
+  saveItensPadrao,
+  resetItensPadrao,
 } from '@/data/maintenanceMonitor';
 import { toast } from '@/hooks/use-toast';
 
@@ -48,7 +52,7 @@ const STATUS_CONFIG = {
 
 export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: MaintenanceMonitorDialogProps) => {
   const [kmAtualRaw, setKmAtualRaw] = useState('');
-  const [view, setView] = useState<'dashboard' | 'register' | 'history'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'register' | 'history' | 'manage'>('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Register form state
@@ -58,6 +62,11 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
   const [marca, setMarca] = useState('');
   const [valor, setValor] = useState('');
   const [obs, setObs] = useState('');
+
+  // Manage items state
+  const [editableItems, setEditableItems] = useState<ItemPadrao[]>([]);
+  const [newItemNome, setNewItemNome] = useState('');
+  const [newItemKmRaw, setNewItemKmRaw] = useState('');
 
   // Expanded status sections
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ vencido: true, proximo: true });
@@ -72,6 +81,8 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
   }, [isOpen, vehicleType]);
 
   const kmAtual = parseInt(kmAtualRaw, 10) || 0;
+
+  const itensPadrao = useMemo(() => loadItensPadrao(vehicleType), [vehicleType, refreshKey]);
 
   const statusData = useMemo(
     () => calcularStatusTodos(vehicleType, kmAtual),
@@ -104,9 +115,8 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     const items: { nome: string; kmIntervalo: number }[] = [];
 
     // Standard items
-    const padrao = ITENS_PADRAO[vehicleType];
     for (const nome of selectedItems) {
-      const found = padrao.find(p => p.nome === nome);
+      const found = itensPadrao.find(p => p.nome === nome);
       if (found) {
         items.push({ nome: found.nome, kmIntervalo: found.kmIntervalo });
       }
@@ -155,6 +165,55 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     setMarca('');
     setValor('');
     setObs('');
+  };
+
+  // Manage items handlers
+  const openManageView = () => {
+    setEditableItems([...itensPadrao]);
+    setNewItemNome('');
+    setNewItemKmRaw('');
+    setView('manage');
+  };
+
+  const handleEditItemNome = (index: number, nome: string) => {
+    setEditableItems(prev => prev.map((item, i) => i === index ? { ...item, nome } : item));
+  };
+
+  const handleEditItemKm = (index: number, raw: string) => {
+    const clean = raw.replace(/\D/g, '');
+    const km = parseInt(clean, 10) || 0;
+    setEditableItems(prev => prev.map((item, i) => i === index ? { ...item, kmIntervalo: km } : item));
+  };
+
+  const handleDeleteItem = (index: number) => {
+    setEditableItems(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddNewItem = () => {
+    if (!newItemNome.trim()) return;
+    const km = parseInt(newItemKmRaw.replace(/\D/g, ''), 10) || 0;
+    setEditableItems(prev => [...prev, { nome: newItemNome.trim(), kmIntervalo: km }]);
+    setNewItemNome('');
+    setNewItemKmRaw('');
+  };
+
+  const handleSaveItems = () => {
+    const valid = editableItems.filter(i => i.nome.trim());
+    if (valid.length === 0) {
+      toast({ title: 'Erro', description: 'Adicione pelo menos um item.', variant: 'destructive' });
+      return;
+    }
+    saveItensPadrao(valid, vehicleType);
+    setRefreshKey(k => k + 1);
+    toast({ title: 'Salvo!', description: `${valid.length} itens salvos.` });
+    setView('dashboard');
+  };
+
+  const handleResetItems = () => {
+    resetItensPadrao(vehicleType);
+    setEditableItems([...ITENS_PADRAO[vehicleType]]);
+    setRefreshKey(k => k + 1);
+    toast({ title: 'Restaurado!', description: 'Itens padrão restaurados.' });
   };
 
   const renderStatusBadge = (status: ItemStatus) => {
@@ -279,12 +338,14 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
             <List className="w-4 h-4" /> HISTÓRICO
           </Button>
         </div>
+        <Button variant="ghost" size="sm" className="w-full gap-2 text-muted-foreground" onClick={openManageView}>
+          <Settings className="w-3.5 h-3.5" /> Gerenciar Itens
+        </Button>
       </>
     );
   };
 
   const renderRegister = () => {
-    const padrao = ITENS_PADRAO[vehicleType];
     return (
       <>
         {/* KM da Troca */}
@@ -302,8 +363,8 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
         <ScrollArea className="max-h-[35vh]">
           <div className="space-y-1 px-1">
-            <label className="text-[10px] text-primary font-bold uppercase block mb-1">Itens Padrão</label>
-            {padrao.map(item => {
+            <label className="text-[10px] text-primary font-bold uppercase block mb-1">Itens ({itensPadrao.length})</label>
+            {itensPadrao.map(item => {
               const itemStatus = statusData.todos.find(s => s.item === item.nome);
               const isVencido = itemStatus?.status === 'vencido';
               const isProximo = itemStatus?.status === 'proximo';
@@ -323,7 +384,9 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
                   />
                   <span className="flex-1 font-medium text-foreground">
                     {item.nome}
-                    <span className="text-muted-foreground text-xs ml-1">[{formatKm(item.kmIntervalo)} km]</span>
+                    <span className="text-muted-foreground text-xs ml-1">
+                      [{item.kmIntervalo > 0 ? `${formatKm(item.kmIntervalo)} km` : 'livre'}]
+                    </span>
                   </span>
                   {isVencido && <span className="text-xs font-bold text-destructive">VENCIDO!</span>}
                   {isProximo && <span className="text-xs font-bold text-yellow-500">PRÓXIMO</span>}
@@ -333,7 +396,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
             {/* Item livre */}
             <div className="mt-3">
-              <label className="text-[10px] text-muted-foreground font-bold uppercase block mb-1">+ Item Livre</label>
+              <label className="text-[10px] text-muted-foreground font-bold uppercase block mb-1">+ Item Avulso</label>
               <input
                 type="text"
                 placeholder="Ex: Lâmpada farol"
@@ -388,6 +451,82 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     );
   };
 
+  const renderManage = () => {
+    return (
+      <>
+        <div className="flex items-center justify-between">
+          <label className="text-[10px] text-primary font-bold uppercase">Editar Itens ({editableItems.length})</label>
+          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1 text-muted-foreground" onClick={handleResetItems}>
+            <RotateCcw className="w-3 h-3" /> Restaurar Padrão
+          </Button>
+        </div>
+
+        <ScrollArea className="max-h-[45vh]">
+          <div className="space-y-2 px-1">
+            {editableItems.map((item, index) => (
+              <div key={index} className="flex items-center gap-2 bg-muted/30 rounded-lg p-2">
+                <div className="flex-1 space-y-1">
+                  <input
+                    type="text"
+                    value={item.nome}
+                    onChange={(e) => handleEditItemNome(index, e.target.value)}
+                    className="w-full bg-input border border-border text-foreground text-sm rounded py-1 px-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                    placeholder="Nome do item"
+                  />
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">KM intervalo:</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={item.kmIntervalo > 0 ? formatKm(item.kmIntervalo) : '0'}
+                      onChange={(e) => handleEditItemKm(index, e.target.value)}
+                      className="w-24 bg-input border border-border text-foreground text-sm text-center rounded py-1 px-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+                      placeholder="0 = livre"
+                    />
+                    <span className="text-[10px] text-muted-foreground">km</span>
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteItem(index)}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ))}
+
+            {/* Add new item */}
+            <div className="border-2 border-dashed border-border rounded-lg p-2 space-y-1">
+              <label className="text-[10px] text-primary font-bold uppercase block">+ Novo Item</label>
+              <input
+                type="text"
+                value={newItemNome}
+                onChange={(e) => setNewItemNome(e.target.value)}
+                placeholder="Nome do item"
+                className="w-full bg-input border border-border text-foreground text-sm rounded py-1 px-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 placeholder:text-muted-foreground"
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={formatInputDisplay(newItemKmRaw)}
+                  onChange={(e) => handleKmInput(e.target.value, setNewItemKmRaw)}
+                  placeholder="KM intervalo (0 = livre)"
+                  className="flex-1 bg-input border border-border text-foreground text-sm rounded py-1 px-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 placeholder:text-muted-foreground"
+                />
+                <Button size="sm" className="h-7" onClick={handleAddNewItem} disabled={!newItemNome.trim()}>
+                  <Plus className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </ScrollArea>
+
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex-1" onClick={() => setView('dashboard')}>Cancelar</Button>
+          <Button className="flex-1" onClick={handleSaveItems}>SALVAR ITENS</Button>
+        </div>
+      </>
+    );
+  };
+
   const renderHistory = () => {
     const sorted = [...trocas].sort((a, b) => b.kmTroca - a.kmTroca);
     return (
@@ -436,6 +575,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           {view === 'dashboard' && renderDashboard()}
           {view === 'register' && renderRegister()}
           {view === 'history' && renderHistory()}
+          {view === 'manage' && renderManage()}
         </div>
       </DialogContent>
     </Dialog>
