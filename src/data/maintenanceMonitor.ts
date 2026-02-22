@@ -67,6 +67,31 @@ const STORAGE_KEYS: Record<VehicleType, string> = {
   carro: 'entregasItajai_trocas_carro',
 };
 
+const CUSTOM_ITEMS_KEYS: Record<VehicleType, string> = {
+  moto: 'entregasItajai_itensPadrao_moto',
+  carro: 'entregasItajai_itensPadrao_carro',
+};
+
+export function loadItensPadrao(vehicle: VehicleType): ItemPadrao[] {
+  const stored = localStorage.getItem(CUSTOM_ITEMS_KEYS[vehicle]);
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return [...ITENS_PADRAO[vehicle]];
+    }
+  }
+  return [...ITENS_PADRAO[vehicle]];
+}
+
+export function saveItensPadrao(itens: ItemPadrao[], vehicle: VehicleType) {
+  localStorage.setItem(CUSTOM_ITEMS_KEYS[vehicle], JSON.stringify(itens));
+}
+
+export function resetItensPadrao(vehicle: VehicleType) {
+  localStorage.removeItem(CUSTOM_ITEMS_KEYS[vehicle]);
+}
+
 const KM_ATUAL_KEY = 'entregasItajai_kmAtual_ativo';
 
 export function loadKmAtual(): number {
@@ -157,7 +182,7 @@ export function calcularStatusTodos(vehicle: VehicleType, kmAtual: number): {
   livres: ItemStatus[];
 } {
   const trocas = loadTrocas(vehicle);
-  const itensPadrao = ITENS_PADRAO[vehicle];
+  const itensPadrao = loadItensPadrao(vehicle);
 
   // Get standard items status
   const todos: ItemStatus[] = itensPadrao.map(ip =>
