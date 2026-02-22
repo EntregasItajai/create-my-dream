@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, Plus, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,6 +18,11 @@ import {
   calcularCustoEstimado,
   getRecordsForMonth,
 } from '@/data/kmControl';
+import {
+  saveKmAtual,
+  calcularStatusTodos,
+  ItemStatus,
+} from '@/data/maintenanceMonitor';
 import { toast } from '@/hooks/use-toast';
 
 interface KmControlDialogProps {
@@ -38,6 +43,7 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [records, setRecords] = useState<KmRecord[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [maintenanceAlert, setMaintenanceAlert] = useState<{ vencidos: ItemStatus[]; proximos: ItemStatus[] } | null>(null);
 
   // Form state
   const [formDate, setFormDate] = useState<Date>(new Date());
@@ -114,8 +120,23 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
 
     saveKmRecord(record, vehicleType);
     setRecords(loadKmRecords(vehicleType));
+
+    // Sync kmFinal with maintenance monitor kmAtual
+    const kmFinalVal = kmFinal ? parseInt(kmFinal, 10) : 0;
+    if (kmFinalVal > 0) {
+      saveKmAtual(kmFinalVal);
+      const status = calcularStatusTodos(vehicleType, kmFinalVal);
+      if (status.vencidos.length > 0 || status.proximos.length > 0) {
+        setMaintenanceAlert({ vencidos: status.vencidos, proximos: status.proximos });
+      } else {
+        setMaintenanceAlert(null);
+        toast({ title: '✅ Registrado!', description: `${formatKm(km)} km · Manutenções em dia!` });
+      }
+    } else {
+      toast({ title: 'Registrado!', description: `${formatKm(km)} km adicionados.` });
+    }
+
     resetForm();
-    toast({ title: 'Registrado!', description: `${km} km adicionados.` });
   };
 
   const handleDelete = (id: string) => {
@@ -130,6 +151,7 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
     setKmFinal('');
     setKmRodado('');
     setFormDate(new Date());
+    setMaintenanceAlert(null);
   };
 
   const formatCurrency = (v: number) =>
@@ -198,6 +220,49 @@ export const KmControlDialog = ({ isOpen, onClose, vehicleType, settings }: KmCo
           <span className="text-muted-foreground">Total do mês:</span>
           <span className="text-foreground">{formatKm(totals.totalKm)} km · {formatCurrency(totals.totalCusto)}</span>
         </div>
+
+        {/* Maintenance alerts */}
+        {maintenanceAlert && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-bold text-destructive">
+              <AlertTriangle className="w-4 h-4" />
+              ⚠️ AVISO DE MANUTENÇÃO
+            </div>
+            {maintenanceAlert.vencidos.length > 0 && (
+              <div className="space-y-1">
+                {maintenanceAlert.vencidos.map(item => (
+                  <div key={item.item} className="text-xs flex items-center gap-1">
+                    <span className="text-destructive font-semibold">🔴 {item.item}</span>
+                    {item.kmFaltam != null && (
+                      <span className="text-destructive">— atrasado {formatKm(Math.abs(item.kmFaltam))} km</span>
+                    )}
+                    {!item.ultimaTroca && <span className="text-destructive">— nunca trocado</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {maintenanceAlert.proximos.length > 0 && (
+              <div className="space-y-1">
+                {maintenanceAlert.proximos.map(item => (
+                  <div key={item.item} className="text-xs flex items-center gap-1">
+                    <span className="text-yellow-500 font-semibold">🟡 {item.item}</span>
+                    {item.kmFaltam != null && (
+                      <span className="text-muted-foreground">— falta {formatKm(item.kmFaltam)} km</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs h-7 text-muted-foreground"
+              onClick={() => setMaintenanceAlert(null)}
+            >
+              Fechar aviso
+            </Button>
+          </div>
+        )}
 
         {/* Add form */}
         {showForm ? (
