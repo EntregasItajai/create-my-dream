@@ -19,11 +19,17 @@ export const useSubscription = () => {
     const fetchRoles = async () => {
       const { data, error } = await supabase
         .from('user_roles')
-        .select('role')
+        .select('role, expires_at')
         .eq('user_id', user.id);
 
       if (!error && data) {
-        setRoles(data.map((r) => r.role as AppRole));
+        const activeRoles = data.filter((r) => {
+          if (r.expires_at) {
+            return new Date(r.expires_at) > new Date();
+          }
+          return true;
+        });
+        setRoles(activeRoles.map((r) => r.role as AppRole));
       }
       setLoading(false);
     };
