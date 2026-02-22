@@ -28,18 +28,33 @@ const Auth = () => {
         navigate('/');
       }
     } else {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: window.location.origin },
       });
+      console.log('[Auth] signUp response:', { data, error });
       if (error) {
+        console.error('[Auth] signUp error:', error.message, error.status);
         toast({ title: 'Erro no cadastro', description: error.message, variant: 'destructive' });
-      } else {
+      } else if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast({
+          title: 'E-mail já cadastrado',
+          description: 'Este e-mail já possui uma conta. Tente fazer login.',
+          variant: 'destructive',
+        });
+      } else if (data.user) {
         toast({
           title: 'Cadastro realizado!',
-          description: 'Verifique seu e-mail para confirmar a conta.',
+          description: data.session
+            ? 'Conta criada com sucesso! Você já está logado.'
+            : 'Verifique seu e-mail para confirmar a conta antes de fazer login.',
         });
+        if (data.session) {
+          navigate('/');
+        }
+      } else {
+        toast({ title: 'Erro inesperado', description: 'Nenhum usuário retornado. Tente novamente.', variant: 'destructive' });
       }
     }
     setLoading(false);
