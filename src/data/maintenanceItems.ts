@@ -21,6 +21,7 @@ export const ITENS_DEFAULTS_MOTO: ItemManutencao[] = [
   { nome: "Buchas balança + MO", valorItem: 200.00, kmTroca: 30000 },
   { nome: "Rolamentos roda (par)", valorItem: 220.00, kmTroca: 40000 },
   { nome: "Revisão preventiva", valorItem: 400.00, kmTroca: 5000 },
+  { nome: "Imprevistos/Peças Extras", valorItem: 200.00, kmTroca: 30000 },
 ];
 
 export const ITENS_DEFAULTS_CARRO: ItemManutencao[] = [
@@ -39,6 +40,7 @@ export const ITENS_DEFAULTS_CARRO: ItemManutencao[] = [
   { nome: "Amortecedores traseiros (par)", valorItem: 480.00, kmTroca: 45000 },
   { nome: "Alinhamento + balanceamento", valorItem: 140.00, kmTroca: 10000 },
   { nome: "Revisão preventiva completa", valorItem: 650.00, kmTroca: 10000 },
+  { nome: "Imprevistos/Peças Extras", valorItem: 350.00, kmTroca: 30000 },
 ];
 
 export const ITENS_DEFAULTS: Record<VehicleType, ItemManutencao[]> = {

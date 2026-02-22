@@ -21,6 +21,7 @@ export const ITENS_PADRAO: Record<VehicleType, ItemPadrao[]> = {
     { nome: 'Buchas balança', kmIntervalo: 30000 },
     { nome: 'Rolamentos', kmIntervalo: 40000 },
     { nome: 'Revisão', kmIntervalo: 5000 },
+    { nome: 'Imprevistos/Peças Extras', kmIntervalo: 30000 },
   ],
   carro: [
     { nome: 'Óleo motor (4L)', kmIntervalo: 10000 },
@@ -38,6 +39,7 @@ export const ITENS_PADRAO: Record<VehicleType, ItemPadrao[]> = {
     { nome: 'Amortecedores traseiros (par)', kmIntervalo: 45000 },
     { nome: 'Alinhamento', kmIntervalo: 10000 },
     { nome: 'Revisão', kmIntervalo: 10000 },
+    { nome: 'Imprevistos/Peças Extras', kmIntervalo: 30000 },
   ],
 };
 
