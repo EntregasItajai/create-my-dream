@@ -26,7 +26,7 @@ export const PremiumGate = ({ children, onAction, featureName }: PremiumGateProp
 
   const handleClick = () => {
     if (!user) {
-      navigate('/auth');
+      navigate('/auth', { state: { premiumRedirect: true } });
       return;
     }
     if (!isPremium) {
