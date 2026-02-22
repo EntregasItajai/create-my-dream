@@ -54,6 +54,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
   // Register form state
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [itemLivre, setItemLivre] = useState('');
+  const [kmTrocaRaw, setKmTrocaRaw] = useState('');
   const [marca, setMarca] = useState('');
   const [valor, setValor] = useState('');
   const [obs, setObs] = useState('');
@@ -94,8 +95,9 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
   };
 
   const handleRegister = () => {
-    if (kmAtual <= 0) {
-      toast({ title: 'Erro', description: 'Atualize o KM atual primeiro.', variant: 'destructive' });
+    const kmTroca = parseInt(kmTrocaRaw, 10) || 0;
+    if (kmTroca <= 0) {
+      toast({ title: 'Erro', description: 'Informe o KM da troca.', variant: 'destructive' });
       return;
     }
 
@@ -125,7 +127,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     for (const item of items) {
       registrarTroca({
         data: format(new Date(), 'yyyy-MM-dd'),
-        kmTroca: kmAtual,
+        kmTroca: kmTroca,
         item: item.nome,
         kmIntervalo: item.kmIntervalo,
         marca: marca || undefined,
@@ -134,8 +136,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
       }, vehicleType);
     }
 
-    saveKmAtual(kmAtual);
-    toast({ title: 'Registrado!', description: `${items.length} troca(s) registrada(s) em ${formatKm(kmAtual)} km.` });
+    toast({ title: 'Registrado!', description: `${items.length} troca(s) registrada(s) em ${formatKm(kmTroca)} km.` });
     resetForm();
     setRefreshKey(k => k + 1);
     setView('dashboard');
@@ -150,6 +151,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
   const resetForm = () => {
     setSelectedItems([]);
     setItemLivre('');
+    setKmTrocaRaw('');
     setMarca('');
     setValor('');
     setObs('');
@@ -285,8 +287,17 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     const padrao = ITENS_PADRAO[vehicleType];
     return (
       <>
-        <div className="text-center text-sm text-muted-foreground mb-2">
-          KM Atual: <span className="font-bold text-foreground">{kmAtual > 0 ? formatKm(kmAtual) : '—'}</span>
+        {/* KM da Troca */}
+        <div>
+          <label className="text-[10px] text-primary font-bold uppercase block mb-1">KM da Troca</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="Ex: 70.000"
+            value={formatInputDisplay(kmTrocaRaw)}
+            onChange={(e) => handleKmInput(e.target.value, setKmTrocaRaw)}
+            className="w-full bg-input border border-border text-foreground text-center text-lg font-bold rounded-lg py-2 px-2 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
+          />
         </div>
 
         <ScrollArea className="max-h-[35vh]">
