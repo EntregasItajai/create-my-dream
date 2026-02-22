@@ -36,6 +36,7 @@ export const ITENS_DEFAULTS_CARRO: ItemManutencao[] = [
   { nome: "Pastilha freio traseira", valorItem: 180.00, kmTroca: 30000 },
   { nome: "Fluido freio", valorItem: 70.00, kmTroca: 30000 },
   { nome: "Amortecedores dianteiros (par)", valorItem: 650.00, kmTroca: 50000 },
+  { nome: "Amortecedores traseiros (par)", valorItem: 480.00, kmTroca: 45000 },
   { nome: "Alinhamento + balanceamento", valorItem: 140.00, kmTroca: 10000 },
   { nome: "Revisão preventiva completa", valorItem: 650.00, kmTroca: 10000 },
 ];
