@@ -14,6 +14,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+import { UserRoleBadge } from '@/components/admin/UserRoleBadge';
+import { ExpiryBadge } from '@/components/admin/ExpiryBadge';
+import { ExpiryDatePicker } from '@/components/admin/ExpiryDatePicker';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
 interface UserWithRole {
   id: string;
@@ -40,6 +44,13 @@ const Admin = () => {
   const [updating, setUpdating] = useState<string | null>(null);
   const [premiumDialog, setPremiumDialog] = useState<{ userId: string; userName: string } | null>(null);
   const [customDays, setCustomDays] = useState('');
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    description: string;
+    onConfirm: () => void;
+    confirmLabel: string;
+    variant?: 'default' | 'destructive';
+  } | null>(null);
 
   useEffect(() => {
     if (!authLoading && !subLoading) {
@@ -100,12 +111,11 @@ const Admin = () => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + days);
 
-    // Remove existing non-admin roles
     await supabase
       .from('user_roles')
       .delete()
       .eq('user_id', userId)
-      .in('role', ['premium', 'user']);
+      .in('role', ['premium', 'user', 'admin']);
 
     const { error } = await supabase.from('user_roles').insert({
       user_id: userId,
@@ -122,30 +132,58 @@ const Admin = () => {
     setUpdating(null);
   };
 
-  const setRole = async (userId: string, newRole: AppRole) => {
+  const updateExpiryDate = async (userId: string, date: Date) => {
+    setUpdating(userId);
+    const { error } = await supabase
+      .from('user_roles')
+      .update({ expires_at: date.toISOString() })
+      .eq('user_id', userId)
+      .eq('role', 'premium');
+
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Data atualizada!', description: `Expiração alterada para ${date.toLocaleDateString('pt-BR')}.` });
+    }
+    await fetchUsers();
+    setUpdating(null);
+  };
+
+  const requestRoleChange = (userId: string, newRole: AppRole) => {
+    const u = users.find((x) => x.id === userId);
+    const userName = u?.display_name || u?.email || 'este usuário';
+
     if (newRole === 'premium') {
-      const u = users.find((x) => x.id === userId);
-      setPremiumDialog({ userId, userName: u?.display_name || u?.email || userId });
+      setPremiumDialog({ userId, userName });
       return;
     }
 
+    const roleLabels: Record<AppRole, string> = {
+      admin: 'Admin',
+      premium: 'Premium',
+      user: 'Gratuito',
+    };
+
+    setConfirmAction({
+      title: `Alterar para ${roleLabels[newRole]}?`,
+      description: `Tem certeza que deseja alterar ${userName} para ${roleLabels[newRole]}? ${newRole === 'user' ? 'Isso removerá todos os privilégios especiais.' : ''}`,
+      confirmLabel: `Sim, alterar para ${roleLabels[newRole]}`,
+      variant: newRole === 'admin' ? 'destructive' : 'default',
+      onConfirm: () => executeRoleChange(userId, newRole),
+    });
+  };
+
+  const executeRoleChange = async (userId: string, newRole: AppRole) => {
+    setConfirmAction(null);
     setUpdating(userId);
 
+    // Delete all existing roles for this user
     await supabase
       .from('user_roles')
       .delete()
-      .eq('user_id', userId)
-      .in('role', ['premium', 'user']);
+      .eq('user_id', userId);
 
-    if (newRole === 'admin') {
-      await supabase.from('user_roles').delete().eq('user_id', userId);
-      const { error } = await supabase.from('user_roles').insert({ user_id: userId, role: 'admin' });
-      if (error) {
-        toast({ title: 'Erro', description: error.message, variant: 'destructive' });
-        setUpdating(null);
-        return;
-      }
-    } else {
+    if (newRole !== 'user') {
       const { error } = await supabase.from('user_roles').insert({ user_id: userId, role: newRole });
       if (error) {
         toast({ title: 'Erro', description: error.message, variant: 'destructive' });
@@ -157,40 +195,6 @@ const Admin = () => {
     toast({ title: 'Atualizado!', description: `Usuário alterado para ${newRole}.` });
     await fetchUsers();
     setUpdating(null);
-  };
-
-  const formatExpiry = (expiresAt: string | null) => {
-    if (!expiresAt) return null;
-    const date = new Date(expiresAt);
-    const now = new Date();
-    const diffMs = date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 0) return <span className="text-xs text-red-400 font-medium">Expirado</span>;
-    if (diffDays === 1) return <span className="text-xs text-amber-400 font-medium">Expira em 1 dia</span>;
-    return <span className="text-xs text-green-400 font-medium">Expira em {diffDays} dias</span>;
-  };
-
-  const getRoleBadge = (roles: AppRole[]) => {
-    if (roles.includes('admin')) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">
-          <Shield className="w-3 h-3" /> Admin
-        </span>
-      );
-    }
-    if (roles.includes('premium')) {
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
-          <Crown className="w-3 h-3" /> Premium
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-muted text-muted-foreground border border-border">
-        <User className="w-3 h-3" /> Gratuito
-      </span>
-    );
   };
 
   if (authLoading || subLoading) {
@@ -232,58 +236,73 @@ const Admin = () => {
             {users.map((u) => (
               <div
                 key={u.id}
-                className="bg-card border border-border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+                className="bg-card border border-border rounded-xl p-4 flex flex-col gap-3"
               >
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground truncate">
-                    {u.display_name || 'Sem nome'}
-                  </p>
-                  <p className="text-sm text-muted-foreground truncate">{u.email}</p>
-                  <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-                    {getRoleBadge(u.roles)}
-                    {u.roles.includes('premium') && formatExpiry(u.expires_at)}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground truncate">
+                      {u.display_name || 'Sem nome'}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate">{u.email}</p>
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                      <UserRoleBadge roles={u.roles} />
+                      {u.roles.includes('premium') && <ExpiryBadge expiresAt={u.expires_at} />}
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {updating === u.id ? (
-                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                  ) : (
-                    <>
-                      {!u.roles.includes('premium') && !u.roles.includes('admin') && (
-                        <Button
-                          size="sm"
-                          onClick={() => setRole(u.id, 'premium')}
-                          className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold"
-                        >
-                          <Crown className="w-3.5 h-3.5 mr-1" />
-                          Premium
-                        </Button>
-                      )}
-                      {!u.roles.includes('user') && !u.roles.includes('admin') && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setRole(u.id, 'user')}
-                          className="text-xs font-bold"
-                        >
-                          <User className="w-3.5 h-3.5 mr-1" />
-                          Revogar
-                        </Button>
-                      )}
-                      {!u.roles.includes('admin') && u.id !== user?.id && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setRole(u.id, 'admin')}
-                          className="text-xs font-bold border-red-500/30 text-red-400 hover:bg-red-500/10"
-                        >
-                          <Shield className="w-3.5 h-3.5 mr-1" />
-                          Admin
-                        </Button>
-                      )}
-                    </>
-                  )}
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                    {updating === u.id ? (
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    ) : (
+                      <>
+                        {/* Show date picker for premium users */}
+                        {u.roles.includes('premium') && (
+                          <ExpiryDatePicker
+                            currentDate={u.expires_at}
+                            onDateChange={(date) => updateExpiryDate(u.id, date)}
+                          />
+                        )}
+
+                        {/* Premium button - shown for non-premium, non-admin */}
+                        {!u.roles.includes('premium') && !u.roles.includes('admin') && (
+                          <Button
+                            size="sm"
+                            onClick={() => requestRoleChange(u.id, 'premium')}
+                            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold"
+                          >
+                            <Crown className="w-3.5 h-3.5 mr-1" />
+                            Premium
+                          </Button>
+                        )}
+
+                        {/* Revogar (set to user) - shown for premium OR admin (except self) */}
+                        {(u.roles.includes('premium') || (u.roles.includes('admin') && u.id !== user?.id)) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => requestRoleChange(u.id, 'user')}
+                            className="text-xs font-bold"
+                          >
+                            <User className="w-3.5 h-3.5 mr-1" />
+                            Revogar
+                          </Button>
+                        )}
+
+                        {/* Admin button - not shown for admins or self */}
+                        {!u.roles.includes('admin') && u.id !== user?.id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => requestRoleChange(u.id, 'admin')}
+                            className="text-xs font-bold border-red-500/30 text-red-400 hover:bg-red-500/10"
+                          >
+                            <Shield className="w-3.5 h-3.5 mr-1" />
+                            Admin
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -352,6 +371,17 @@ const Admin = () => {
           </Button>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation dialog */}
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction?.title || ''}
+        description={confirmAction?.description || ''}
+        onConfirm={confirmAction?.onConfirm || (() => {})}
+        confirmLabel={confirmAction?.confirmLabel}
+        variant={confirmAction?.variant}
+      />
     </div>
   );
 };
