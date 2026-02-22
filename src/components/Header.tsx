@@ -1,6 +1,8 @@
-import { Settings2, Bike, Car } from 'lucide-react';
+import { Settings2, Bike, Car, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VehicleType } from '@/data/maintenanceItems';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -11,6 +13,9 @@ interface HeaderProps {
 }
 
 export const Header = ({ onSettingsClick, vehicleType, onVehicleChange }: HeaderProps) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <header className="w-full bg-card border-b border-border">
       <div className="container mx-auto px-4 max-w-lg">
@@ -55,6 +60,29 @@ export const Header = ({ onSettingsClick, vehicleType, onVehicleChange }: Header
             >
               <Settings2 className="w-5 h-5" />
             </Button>
+
+            {/* Auth button */}
+            {user ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={signOut}
+                className="bg-muted hover:bg-muted/80 text-muted-foreground rounded-lg transition-colors"
+                title={`Sair (${user.email})`}
+              >
+                <LogOut className="w-5 h-5" />
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/auth')}
+                className="bg-muted hover:bg-muted/80 text-muted-foreground rounded-lg transition-colors"
+                title="Entrar"
+              >
+                <LogIn className="w-5 h-5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
