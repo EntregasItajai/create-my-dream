@@ -4,6 +4,7 @@ import { SettingsDrawer } from '@/components/SettingsDrawer';
 import { FreightCalculator } from '@/components/FreightCalculator';
 import { FreightResult } from '@/components/FreightResult';
 import { KmControlDialog } from '@/components/KmControlDialog';
+import { MaintenanceMonitorDialog } from '@/components/MaintenanceMonitorDialog';
 import { TextBanner } from '@/components/TextBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
@@ -103,6 +104,7 @@ const Index = () => {
   const [vehicleType, setVehicleType] = useState<VehicleType>(loadVehicleType);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kmControlOpen, setKmControlOpen] = useState(false);
+  const [maintenanceMonitorOpen, setMaintenanceMonitorOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings(vehicleType));
   const [distance, setDistance] = useState('');
   const [hours, setHours] = useState('');
@@ -275,6 +277,7 @@ const Index = () => {
             onCalculate={handleCalculate}
             onCalculateCosts={handleCalculateCosts}
             onOpenKmControl={() => setKmControlOpen(true)}
+            onOpenMaintenanceMonitor={() => setMaintenanceMonitorOpen(true)}
             vehicleType={vehicleType}
           />
 
@@ -285,6 +288,12 @@ const Index = () => {
             onClose={() => setKmControlOpen(false)}
             vehicleType={vehicleType}
             settings={settings}
+          />
+
+          <MaintenanceMonitorDialog
+            isOpen={maintenanceMonitorOpen}
+            onClose={() => setMaintenanceMonitorOpen(false)}
+            vehicleType={vehicleType}
           />
 
           <TextBanner link="https://www.instagram.com/entregasitajai.com.br/" />
