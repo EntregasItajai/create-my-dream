@@ -361,53 +361,51 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           />
         </div>
 
-        {/* Lista de itens com scroll */}
-        <ScrollArea className="flex-1 min-h-0 max-h-[40vh]">
-          <div className="space-y-1 px-1">
-            <label className="text-[10px] text-primary font-bold uppercase block mb-1">Itens ({itensPadrao.length})</label>
-            {itensPadrao.map(item => {
-              const itemStatus = statusData.todos.find(s => s.item === item.nome);
-              const isVencido = itemStatus?.status === 'vencido';
-              const isProximo = itemStatus?.status === 'proximo';
-              const checked = selectedItems.includes(item.nome);
-              return (
-                <label
-                  key={item.nome}
-                  className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm ${
-                    checked ? 'bg-primary/10 border border-primary/30' : 'bg-muted/30 hover:bg-muted/50'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleItem(item.nome)}
-                    className="accent-primary w-4 h-4"
-                  />
-                  <span className="flex-1 font-medium text-foreground">
-                    {item.nome}
-                    <span className="text-muted-foreground text-xs ml-1">
-                      [{item.kmIntervalo > 0 ? `${formatKm(item.kmIntervalo)} km` : 'livre'}]
-                    </span>
+        {/* Lista de itens com scroll nativo */}
+        <label className="text-[10px] text-primary font-bold uppercase block">Itens ({itensPadrao.length})</label>
+        <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-1">
+          {itensPadrao.map(item => {
+            const itemStatus = statusData.todos.find(s => s.item === item.nome);
+            const isVencido = itemStatus?.status === 'vencido';
+            const isProximo = itemStatus?.status === 'proximo';
+            const checked = selectedItems.includes(item.nome);
+            return (
+              <label
+                key={item.nome}
+                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm ${
+                  checked ? 'bg-primary/10 border border-primary/30' : 'bg-muted/30 hover:bg-muted/50'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggleItem(item.nome)}
+                  className="accent-primary w-4 h-4"
+                />
+                <span className="flex-1 font-medium text-foreground">
+                  {item.nome}
+                  <span className="text-muted-foreground text-xs ml-1">
+                    [{item.kmIntervalo > 0 ? `${formatKm(item.kmIntervalo)} km` : 'livre'}]
                   </span>
-                  {isVencido && <span className="text-xs font-bold text-destructive">VENCIDO!</span>}
-                  {isProximo && <span className="text-xs font-bold text-yellow-500">PRÓXIMO</span>}
-                </label>
-              );
-            })}
+                </span>
+                {isVencido && <span className="text-xs font-bold text-destructive">VENCIDO!</span>}
+                {isProximo && <span className="text-xs font-bold text-yellow-500">PRÓXIMO</span>}
+              </label>
+            );
+          })}
 
-            {/* Item livre */}
-            <div className="mt-3">
-              <label className="text-[10px] text-muted-foreground font-bold uppercase block mb-1">+ Item Avulso</label>
-              <input
-                type="text"
-                placeholder="Ex: Lâmpada farol"
-                value={itemLivre}
-                onChange={(e) => setItemLivre(e.target.value)}
-                className="w-full bg-input border border-border text-foreground text-sm rounded-lg py-2 px-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
-              />
-            </div>
+          {/* Item livre */}
+          <div className="mt-3">
+            <label className="text-[10px] text-muted-foreground font-bold uppercase block mb-1">+ Item Avulso</label>
+            <input
+              type="text"
+              placeholder="Ex: Lâmpada farol"
+              value={itemLivre}
+              onChange={(e) => setItemLivre(e.target.value)}
+              className="w-full bg-input border border-border text-foreground text-sm rounded-lg py-2 px-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
+            />
           </div>
-        </ScrollArea>
+        </div>
 
         {/* Campos extras e botões - fixos na parte inferior */}
         <div className="grid grid-cols-2 gap-2">
@@ -572,7 +570,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
+        <div className="flex-1 flex flex-col gap-3 min-h-0">
           {view === 'dashboard' && renderDashboard()}
           {view === 'register' && renderRegister()}
           {view === 'history' && renderHistory()}
