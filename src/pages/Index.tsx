@@ -5,7 +5,7 @@ import { FreightCalculator } from '@/components/FreightCalculator';
 import { FreightResult } from '@/components/FreightResult';
 import { KmControlDialog } from '@/components/KmControlDialog';
 import { MaintenanceMonitorDialog } from '@/components/MaintenanceMonitorDialog';
-import { TextBanner } from '@/components/TextBanner';
+
 import { AdBanner } from '@/components/AdBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
@@ -311,14 +311,20 @@ const Index = () => {
               vehicleType={vehicleType}
             />
 
-            {/* Banner horizontal acima do Instagram */}
-            <div className="flex justify-center">
-              {footerBanners.length > 0
-                ? <AdBanner width={728} height={90} banner={footerBanners[0]} />
-                : <AdBanner width={728} height={90} />}
+            {/* Área de banners do rodapé */}
+            <div className="space-y-3">
+              {/* 3 banners grandes */}
+              {[0, 1, 2].map((i) => (
+                <div key={`footer-lg-${i}`} className="flex justify-center">
+                  <AdBanner width={728} height={90} banner={footerBanners[i]} />
+                </div>
+              ))}
+              {/* 2 banners pequenos lado a lado */}
+              <div className="flex gap-3 justify-center">
+                <AdBanner width={350} height={150} banner={footerBanners[3]} />
+                <AdBanner width={350} height={150} banner={footerBanners[4]} />
+              </div>
             </div>
-
-            <TextBanner link="https://www.instagram.com/entregasitajai.com.br/" />
           </div>
         </main>
 
