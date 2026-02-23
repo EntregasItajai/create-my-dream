@@ -1,8 +1,6 @@
-import { Calculator, Bike, Car, ClipboardList, Coins, Wrench, Lock } from 'lucide-react';
+import { Calculator, Bike, Car, ClipboardList, Coins, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VehicleType } from '@/data/maintenanceItems';
-import { PremiumGate } from '@/components/PremiumGate';
-import { useSubscription } from '@/hooks/useSubscription';
 
 interface FreightCalculatorProps {
   distance: string;
@@ -25,7 +23,6 @@ export const FreightCalculator = ({
 }: FreightCalculatorProps) => {
   const VehicleIcon = vehicleType === 'moto' ? Bike : Car;
   const vehicleLabel = vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro';
-  const { isPremium } = useSubscription();
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -102,29 +99,25 @@ export const FreightCalculator = ({
             CALCULAR CUSTOS
           </Button>
 
-          {/* Premium: Controle de KM */}
-          <PremiumGate onAction={onOpenKmControl} featureName="Controle de KM">
-            <Button
-              variant="outline"
-              className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg pointer-events-none"
-            >
-              <ClipboardList className="w-5 h-5" />
-              CONTROLE DE KM
-              {!isPremium && <Lock className="w-4 h-4 ml-1 text-muted-foreground" />}
-            </Button>
-          </PremiumGate>
+          {/* Controle de KM */}
+          <Button
+            variant="outline"
+            onClick={onOpenKmControl}
+            className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg"
+          >
+            <ClipboardList className="w-5 h-5" />
+            CONTROLE DE KM
+          </Button>
 
-          {/* Premium: Monitorar Manutenções */}
-          <PremiumGate onAction={onOpenMaintenanceMonitor} featureName="Monitorar Manutenções">
-            <Button
-              variant="outline"
-              className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg border-primary/30 text-primary hover:bg-primary/10 pointer-events-none"
-            >
-              <Wrench className="w-5 h-5" />
-              MONITORAR MANUTENÇÕES
-              {!isPremium && <Lock className="w-4 h-4 ml-1 text-muted-foreground" />}
-            </Button>
-          </PremiumGate>
+          {/* Monitorar Manutenções */}
+          <Button
+            variant="outline"
+            onClick={onOpenMaintenanceMonitor}
+            className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg border-primary/30 text-primary hover:bg-primary/10"
+          >
+            <Wrench className="w-5 h-5" />
+            MONITORAR MANUTENÇÕES
+          </Button>
         </div>
       </div>
     </div>
