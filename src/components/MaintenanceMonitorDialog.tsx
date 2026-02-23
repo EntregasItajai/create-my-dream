@@ -347,9 +347,8 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
   const renderRegister = () => {
     return (
-      <ScrollArea className="flex-1 min-h-0 max-h-[60vh]">
-        <div className="space-y-3 px-1">
-        {/* KM da Troca */}
+      <>
+        {/* KM da Troca - fixo no topo */}
         <div>
           <label className="text-[10px] text-primary font-bold uppercase block mb-1">KM da Troca</label>
           <input
@@ -362,8 +361,10 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           />
         </div>
 
-        <div className="space-y-1">
-          <label className="text-[10px] text-primary font-bold uppercase block mb-1">Itens ({itensPadrao.length})</label>
+        {/* Lista de itens com scroll */}
+        <ScrollArea className="flex-1 min-h-0 max-h-[40vh]">
+          <div className="space-y-1 px-1">
+            <label className="text-[10px] text-primary font-bold uppercase block mb-1">Itens ({itensPadrao.length})</label>
             {itensPadrao.map(item => {
               const itemStatus = statusData.todos.find(s => s.item === item.nome);
               const isVencido = itemStatus?.status === 'vencido';
@@ -406,8 +407,9 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
               />
             </div>
           </div>
+        </ScrollArea>
 
-        {/* Extra fields */}
+        {/* Campos extras e botões - fixos na parte inferior */}
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-[10px] text-muted-foreground font-medium uppercase block mb-1">Marca</label>
@@ -446,8 +448,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           <Button variant="outline" className="flex-1" onClick={() => { resetForm(); setView('dashboard'); }}>Voltar</Button>
           <Button className="flex-1" onClick={handleRegister}>SALVAR</Button>
         </div>
-        </div>
-      </ScrollArea>
+      </>
     );
   };
 
