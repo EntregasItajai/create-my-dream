@@ -6,6 +6,7 @@ import { FreightResult } from '@/components/FreightResult';
 import { KmControlDialog } from '@/components/KmControlDialog';
 import { MaintenanceMonitorDialog } from '@/components/MaintenanceMonitorDialog';
 import { TextBanner } from '@/components/TextBanner';
+import { AdBanner } from '@/components/AdBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
 import {
@@ -265,40 +266,61 @@ const Index = () => {
         vehicleType={vehicleType}
       />
 
-      <main className="container mx-auto px-4 py-6 max-w-lg">
-        <div className="space-y-6">
-          <FreightCalculator
-            distance={distance}
-            hours={hours}
-            minutes={minutes}
-            onDistanceChange={setDistance}
-            onHoursChange={setHours}
-            onMinutesChange={setMinutes}
-            onCalculate={handleCalculate}
-            onCalculateCosts={handleCalculateCosts}
-            onOpenKmControl={() => setKmControlOpen(true)}
-            onOpenMaintenanceMonitor={() => setMaintenanceMonitorOpen(true)}
-            vehicleType={vehicleType}
-          />
+      <div className="flex justify-center gap-4 py-6 px-4">
+        {/* Sidebar esquerda - apenas desktop */}
+        <aside className="hidden lg:flex flex-col gap-4 flex-shrink-0">
+          <AdBanner width={250} height={250} label="Anúncio 1" />
+          <AdBanner width={250} height={250} label="Anúncio 2" />
+          <AdBanner width={250} height={250} label="Anúncio 3" />
+        </aside>
 
-          {result && <FreightResult result={result} />}
+        <main className="w-full max-w-lg">
+          <div className="space-y-6">
+            <FreightCalculator
+              distance={distance}
+              hours={hours}
+              minutes={minutes}
+              onDistanceChange={setDistance}
+              onHoursChange={setHours}
+              onMinutesChange={setMinutes}
+              onCalculate={handleCalculate}
+              onCalculateCosts={handleCalculateCosts}
+              onOpenKmControl={() => setKmControlOpen(true)}
+              onOpenMaintenanceMonitor={() => setMaintenanceMonitorOpen(true)}
+              vehicleType={vehicleType}
+            />
 
-          <KmControlDialog
-            isOpen={kmControlOpen}
-            onClose={() => setKmControlOpen(false)}
-            vehicleType={vehicleType}
-            settings={settings}
-          />
+            {result && <FreightResult result={result} />}
 
-          <MaintenanceMonitorDialog
-            isOpen={maintenanceMonitorOpen}
-            onClose={() => setMaintenanceMonitorOpen(false)}
-            vehicleType={vehicleType}
-          />
+            <KmControlDialog
+              isOpen={kmControlOpen}
+              onClose={() => setKmControlOpen(false)}
+              vehicleType={vehicleType}
+              settings={settings}
+            />
 
-          <TextBanner link="https://www.instagram.com/entregasitajai.com.br/" />
-        </div>
-      </main>
+            <MaintenanceMonitorDialog
+              isOpen={maintenanceMonitorOpen}
+              onClose={() => setMaintenanceMonitorOpen(false)}
+              vehicleType={vehicleType}
+            />
+
+            {/* Banner horizontal acima do Instagram */}
+            <div className="flex justify-center">
+              <AdBanner width={728} height={90} label="Anúncio Banner" />
+            </div>
+
+            <TextBanner link="https://www.instagram.com/entregasitajai.com.br/" />
+          </div>
+        </main>
+
+        {/* Sidebar direita - apenas desktop */}
+        <aside className="hidden lg:flex flex-col gap-4 flex-shrink-0">
+          <AdBanner width={250} height={250} label="Anúncio 4" />
+          <AdBanner width={250} height={250} label="Anúncio 5" />
+          <AdBanner width={250} height={250} label="Anúncio 6" />
+        </aside>
+      </div>
     </div>
   );
 };
