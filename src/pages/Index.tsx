@@ -9,6 +9,7 @@ import { TextBanner } from '@/components/TextBanner';
 import { AdBanner } from '@/components/AdBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
+import { useBanners } from '@/hooks/useBanners';
 import {
   VehicleType,
   ItemManutencao,
@@ -102,6 +103,7 @@ export interface CalculationResult {
 
 const Index = () => {
   const { isDark, toggleTheme } = useTheme();
+  const { getBannersByPosition } = useBanners();
   const [vehicleType, setVehicleType] = useState<VehicleType>(loadVehicleType);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kmControlOpen, setKmControlOpen] = useState(false);
@@ -245,7 +247,11 @@ const Index = () => {
     toast({ title: "Sucesso!", description: "Custos calculados com sucesso." });
   };
 
-  return (
+    const sidebarLeft = getBannersByPosition('sidebar_left');
+    const sidebarRight = getBannersByPosition('sidebar_right');
+    const footerBanners = getBannersByPosition('footer');
+
+    return (
     <div className="min-h-screen bg-background">
       <Header
         onSettingsClick={() => setSettingsOpen(true)}
@@ -269,9 +275,9 @@ const Index = () => {
       <div className="flex justify-center gap-4 py-6 px-4">
         {/* Sidebar esquerda - apenas desktop */}
         <aside className="hidden lg:flex flex-col gap-4 flex-shrink-0">
-          <AdBanner width={250} height={250} label="Anúncio 1" />
-          <AdBanner width={250} height={250} label="Anúncio 2" />
-          <AdBanner width={250} height={250} label="Anúncio 3" />
+          {sidebarLeft.length > 0
+            ? sidebarLeft.slice(0, 3).map((b) => <AdBanner key={b.id} width={250} height={250} banner={b} />)
+            : Array.from({ length: 3 }).map((_, i) => <AdBanner key={`left-${i}`} width={250} height={250} />)}
         </aside>
 
         <main className="w-full max-w-lg">
@@ -307,7 +313,9 @@ const Index = () => {
 
             {/* Banner horizontal acima do Instagram */}
             <div className="flex justify-center">
-              <AdBanner width={728} height={90} label="Anúncio Banner" />
+              {footerBanners.length > 0
+                ? <AdBanner width={728} height={90} banner={footerBanners[0]} />
+                : <AdBanner width={728} height={90} />}
             </div>
 
             <TextBanner link="https://www.instagram.com/entregasitajai.com.br/" />
@@ -316,9 +324,9 @@ const Index = () => {
 
         {/* Sidebar direita - apenas desktop */}
         <aside className="hidden lg:flex flex-col gap-4 flex-shrink-0">
-          <AdBanner width={250} height={250} label="Anúncio 4" />
-          <AdBanner width={250} height={250} label="Anúncio 5" />
-          <AdBanner width={250} height={250} label="Anúncio 6" />
+          {sidebarRight.length > 0
+            ? sidebarRight.slice(0, 3).map((b) => <AdBanner key={b.id} width={250} height={250} banner={b} />)
+            : Array.from({ length: 3 }).map((_, i) => <AdBanner key={`right-${i}`} width={250} height={250} />)}
         </aside>
       </div>
     </div>
