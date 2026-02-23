@@ -1,96 +1,41 @@
-# Plano Freemium: Calculadoras Gratis + Premium com Login
+## Substituir rodape Instagram por area de banners
 
-## Resumo
+### O que muda
 
-Transformar o app em um modelo freemium onde:
+- Remover o componente `TextBanner` (Instagram) do rodape
+- No lugar, criar uma area com **5 banners de anuncio**:
+  - **3 banners grandes** empilhados (largura total, ~728x90 cada)
+  - **2 banners pequenos** lado a lado (cada um ~50% da largura)
+- Buscar banners da posicao `footer` na tabela do Supabase
+- Se nao houver banners cadastrados, exibir os placeholders "Anuncie Aqui" com link pro WhatsApp
 
-- **Gratis**: Calculadora de frete e calculadora de custos (funcionam sem login)
-- **Premium**: Controle de KM + Monitorar Manutencoes (requer login e liberacao manual)
-
-O pagamento sera via PIX, com liberacao manual do acesso premium por voce (admin).
-
-## O que precisa ser feito
-
-### 1. Conectar Supabase (backend)
-
-O app atualmente e 100% local (localStorage). Para ter login e controle de assinatura, precisamos de um backend. Vou usar o Lovable Cloud (Supabase integrado) para:
-
-- Autenticacao (login com email e Google)
-- Tabela de perfis de usuario
-- Tabela de roles/assinaturas para controlar quem e premium
-
-### 2. Sistema de Autenticacao
-
-- Pagina de login com email/senha e Google
-- Registro de novos usuarios
-- Botao de login/logout no header do app
-
-### 3. Controle de Acesso Premium
-
-- Tabela `user_roles` no banco para marcar quem e premium
-- Voce (admin) libera o acesso manualmente apos confirmar o PIX
-- Os botoes "Controle de KM" e "Monitorar Manutencoes" aparecem com um cadeado para usuarios gratuitos
-- Ao clicar no cadeado, aparece uma mensagem explicando como assinar (PIX + contato)
-
-### 4. Fluxo do Usuario
+### Layout final do rodape (dentro do `<main>`)
 
 ```text
-Usuario abre o app
-  |
-  +-- Calculadoras funcionam normalmente (sem login)
-  |
-  +-- Clica em "Controle de KM" ou "Monitorar Manutencoes"
-       |
-       +-- Nao logado? --> Tela de login
-       |
-       +-- Logado mas nao premium? --> Mensagem "Assine para acessar"
-       |                               com instrucoes de PIX
-       |
-       +-- Logado e premium? --> Abre normalmente
++-------------------------------+
+|      Banner Grande 1          |
++-------------------------------+
+|      Banner Grande 2          |
++-------------------------------+
+|      Banner Grande 3          |
++-------------------------------+
+| Banner Peq 1 | Banner Peq 2  |
++-------------------------------+
 ```
 
-### 5. Migracao de Dados
+### Detalhes tecnicos
 
-- Os dados que ja existem no localStorage continuam funcionando para as calculadoras
-- Quando o usuario logar e for premium, os dados de KM e manutencao podem continuar no localStorage (vinculados ao navegador) -- sem custo extra de banco
+**Arquivo: `src/pages/Index.tsx**`
 
-## Detalhes Tecnicos
+- Remover o import de `TextBanner`
+- Substituir o bloco do banner horizontal + `TextBanner` por:
+  - 3x `AdBanner` com largura total (width=728, height=90)
+  - 1 `div` com `flex` e `gap` contendo 2x `AdBanner` menores (width=350, height=150)
+- Usar `footerBanners` (posicao `footer`) para preencher os 5 slots; slots sem banner mostram placeholder
 
-### Banco de Dados (Supabase)
+**Arquivo: `src/components/TextBanner.tsx**`
 
-**Tabela `profiles`:**
+- Nenhuma alteracao (pode ser removido depois se nao for usado em outro lugar)
 
-- `id` (uuid, referencia auth.users)
-- `email` (text)
-- `display_name` (text, opcional)
-- `created_at` (timestamp)
-
-**Tabela `user_roles`:**
-
-- `id` (uuid)
-- `user_id` (uuid, referencia auth.users)
-- `role` (enum: 'admin', 'premium', 'user')
-- RLS policies para seguranca
-
-**Funcao `has_role`:** Security definer para verificar roles sem recursao RLS.
-
-### Novos Arquivos
-
-- `src/pages/Auth.tsx` -- pagina de login/registro
-- `src/contexts/AuthContext.tsx` -- contexto de autenticacao
-- `src/hooks/useSubscription.ts` -- hook para verificar se usuario e premium
-- `src/components/PremiumGate.tsx` -- componente que envolve features premium (mostra cadeado ou conteudo)
-
-### Arquivos Alterados
-
-- `src/pages/Index.tsx` -- integrar verificacao premium nos botoes de KM e manutencao
-- `src/components/Header.tsx` -- botao de login/logout e avatar do usuario
-- `src/components/FreightCalculator.tsx` -- visual de cadeado nos botoes premium
-- `src/App.tsx` -- adicionar rota /auth e AuthProvider
-
-### Prerequisito
-
-Sera necessario ativar o Lovable Cloud (Supabase) no projeto para ter o backend de autenticacao. Para login com Google, voce precisara configurar as credenciais OAuth no Google Cloud Console.  
-  
-OBS: o plano está bom, mas quero que até o usuário gratuíto faça login, pois quero saber quem e quantas pessoas estão usando o sistema  
-preciso tbm que vc gere uma instrução completa das tabelas que precisam ser criadas no supabase para esse sistema que montamos com todas essas autalizações
+**Nenhuma alteracao** no `AdBanner.tsx` -- o componente ja suporta qualquer dimensao e fallback.  
+E lá no topo onde tem "Entregas Itajaí" Calculadora de rota , trque o Calculadora de rota por "Visite nosso instagram' com o mesmo link do visite nosso instagram que está sendo retirado do rodapé
