@@ -571,7 +571,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col gap-3 min-h-0">
+        <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
           {view === 'dashboard' && renderDashboard()}
           {view === 'register' && renderRegister()}
           {view === 'history' && renderHistory()}
