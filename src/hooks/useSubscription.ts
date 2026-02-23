@@ -11,43 +11,17 @@ export const useSubscription = () => {
 
   const fetchRoles = useCallback(async (userId: string) => {
     setLoading(true);
-    console.log('[useSubscription] Fetching roles for user:', userId);
     
-    let data: { role: string; expires_at?: string | null }[] | null = null;
-    let error: any = null;
-
-    const result1 = await supabase
+    const { data, error } = await supabase
       .from('user_roles')
-      .select('role, expires_at')
+      .select('role')
       .eq('user_id', userId);
-
-    if (result1.error && result1.error.code === '42703') {
-      console.log('[useSubscription] expires_at column not found, querying without it');
-      const result2 = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-      data = result2.data;
-      error = result2.error;
-    } else {
-      data = result1.data;
-      error = result1.error;
-    }
-
-    console.log('[useSubscription] Result:', { data, error });
 
     if (error) {
       console.error('[useSubscription] Error fetching roles:', error.message);
       setRoles([]);
     } else if (data) {
-      const activeRoles = data.filter((r) => {
-        if (r.expires_at) {
-          return new Date(r.expires_at) > new Date();
-        }
-        return true;
-      });
-      const mapped = activeRoles.map((r) => r.role as AppRole);
-      console.log('[useSubscription] Active roles:', mapped);
+      const mapped = data.map((r) => r.role as AppRole);
       setRoles(mapped);
     }
     setLoading(false);
