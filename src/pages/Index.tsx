@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { SettingsDrawer } from '@/components/SettingsDrawer';
 import { FreightCalculator } from '@/components/FreightCalculator';
@@ -102,6 +104,8 @@ export interface CalculationResult {
 }
 
 const Index = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const { getBannersByPosition } = useBanners();
   const [vehicleType, setVehicleType] = useState<VehicleType>(loadVehicleType);
@@ -281,8 +285,14 @@ const Index = () => {
               onMinutesChange={setMinutes}
               onCalculate={handleCalculate}
               onCalculateCosts={handleCalculateCosts}
-              onOpenKmControl={() => setKmControlOpen(true)}
-              onOpenMaintenanceMonitor={() => setMaintenanceMonitorOpen(true)}
+              onOpenKmControl={() => {
+                if (!user) { toast({ title: 'Login necessário', description: 'Faça login para acessar o Controle de KM.', variant: 'destructive' }); navigate('/auth'); return; }
+                setKmControlOpen(true);
+              }}
+              onOpenMaintenanceMonitor={() => {
+                if (!user) { toast({ title: 'Login necessário', description: 'Faça login para acessar o Monitor de Manutenções.', variant: 'destructive' }); navigate('/auth'); return; }
+                setMaintenanceMonitorOpen(true);
+              }}
               vehicleType={vehicleType}
             />
 
