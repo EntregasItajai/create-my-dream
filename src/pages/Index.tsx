@@ -247,8 +247,6 @@ const Index = () => {
     toast({ title: "Sucesso!", description: "Custos calculados com sucesso." });
   };
 
-    const sidebarLeft = getBannersByPosition('sidebar_left');
-    const sidebarRight = getBannersByPosition('sidebar_right');
     const footerBanners = getBannersByPosition('footer');
 
     return (
@@ -272,15 +270,7 @@ const Index = () => {
         vehicleType={vehicleType}
       />
 
-      <div className="flex justify-center gap-4 py-6 px-4">
-        {/* Sidebar esquerda - apenas desktop */}
-        <aside className="hidden lg:flex flex-col gap-4 flex-shrink-0">
-          {sidebarLeft.length > 0
-            ? sidebarLeft.slice(0, 3).map((b) => <AdBanner key={b.id} width={250} height={250} banner={b} />)
-            : Array.from({ length: 3 }).map((_, i) => <AdBanner key={`left-${i}`} width={250} height={250} />)}
-        </aside>
-
-        <main className="w-full max-w-lg">
+      <main className="w-full max-w-lg mx-auto py-6 px-4">
           <div className="space-y-6">
             <FreightCalculator
               distance={distance}
@@ -327,14 +317,6 @@ const Index = () => {
             </div>
           </div>
         </main>
-
-        {/* Sidebar direita - apenas desktop */}
-        <aside className="hidden lg:flex flex-col gap-4 flex-shrink-0">
-          {sidebarRight.length > 0
-            ? sidebarRight.slice(0, 3).map((b) => <AdBanner key={b.id} width={250} height={250} banner={b} />)
-            : Array.from({ length: 3 }).map((_, i) => <AdBanner key={`right-${i}`} width={250} height={250} />)}
-        </aside>
-      </div>
     </div>
   );
 };
