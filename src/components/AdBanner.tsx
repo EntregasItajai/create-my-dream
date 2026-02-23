@@ -31,12 +31,17 @@ export const AdBanner = ({ width, height, className = '', label, banner }: AdBan
     return <div className={className}>{content}</div>;
   }
 
+  const whatsappUrl = `https://wa.me/5547991508563?text=${encodeURIComponent('oi, desejo anunciar na ferramenta calculadora')}`;
+
   return (
-    <div
-      className={`flex items-center justify-center border border-dashed border-border rounded-lg bg-muted/30 text-muted-foreground text-xs font-medium select-none ${className}`}
+    <a
+      href={whatsappUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`flex items-center justify-center border border-dashed border-border rounded-lg bg-muted/30 text-muted-foreground text-xs font-medium select-none hover:bg-muted/50 transition-colors cursor-pointer ${className}`}
       style={{ width: '100%', maxWidth: width, height }}
     >
       {label || '📢 Anuncie Aqui'}
-    </div>
+    </a>
   );
 };
