@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription, AppRole } from '@/hooks/useSubscription';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shield, User, Loader2 } from 'lucide-react';
+import { ArrowLeft, Shield, User, Loader2, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { UserRoleBadge } from '@/components/admin/UserRoleBadge';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
@@ -115,6 +115,38 @@ const Admin = () => {
     setUpdating(null);
   };
 
+  const requestDeleteUser = (userId: string) => {
+    const u = users.find((x) => x.id === userId);
+    const userName = u?.display_name || u?.email || 'este usuário';
+
+    setConfirmAction({
+      title: 'Excluir usuário?',
+      description: `Tem certeza que deseja excluir ${userName}? Isso removerá o perfil e todas as permissões. Esta ação não pode ser desfeita.`,
+      confirmLabel: 'Sim, excluir',
+      variant: 'destructive',
+      onConfirm: () => executeDeleteUser(userId),
+    });
+  };
+
+  const executeDeleteUser = async (userId: string) => {
+    setConfirmAction(null);
+    setUpdating(userId);
+
+    // Remove roles first, then profile
+    await supabase.from('user_roles').delete().eq('user_id', userId);
+    const { error } = await supabase.from('profiles').delete().eq('id', userId);
+
+    if (error) {
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      setUpdating(null);
+      return;
+    }
+
+    toast({ title: 'Excluído!', description: `Usuário ${userId.slice(0, 8)}... foi removido.` });
+    await fetchUsers();
+    setUpdating(null);
+  };
+
   if (authLoading || subLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -176,8 +208,15 @@ const Admin = () => {
 
                         {/* Admin button - not shown for admins or self */}
                         {!u.roles.includes('admin') && u.id !== user?.id && (
-                          <Button size="sm" variant="outline" onClick={() => requestRoleChange(u.id, 'admin')} className="text-xs font-bold border-red-500/30 text-red-400 hover:bg-red-500/10">
+                          <Button size="sm" variant="outline" onClick={() => requestRoleChange(u.id, 'admin')} className="text-xs font-bold border-destructive/30 text-destructive hover:bg-destructive/10">
                             <Shield className="w-3.5 h-3.5 mr-1" /> Admin
+                          </Button>
+                        )}
+
+                        {/* Delete button - not shown for self */}
+                        {u.id !== user?.id && (
+                          <Button size="sm" variant="outline" onClick={() => requestDeleteUser(u.id)} className="text-xs font-bold border-destructive/30 text-destructive hover:bg-destructive/10">
+                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Excluir
                           </Button>
                         )}
                       </>
