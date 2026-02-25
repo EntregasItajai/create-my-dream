@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List, Settings, RotateCcw, Pencil } from 'lucide-react';
+import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List, Settings, RotateCcw, Pencil, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,6 +22,18 @@ import {
   saveItensPadrao,
   resetItensPadrao,
 } from '@/data/maintenanceMonitor';
+import {
+  loadKmAtualDB,
+  saveKmAtualDB,
+  loadTrocasDB,
+  registrarTrocaDB,
+  deleteTrocaDB,
+  loadItensPadraoDB,
+  saveItensPadraoDB,
+  resetItensPadraoDB,
+  calcularStatusTodosFromData,
+} from '@/data/maintenanceMonitorSupabase';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 interface MaintenanceMonitorDialogProps {
@@ -51,9 +63,17 @@ const STATUS_CONFIG = {
 } as const;
 
 export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: MaintenanceMonitorDialogProps) => {
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  const [loading, setLoading] = useState(false);
   const [kmAtualRaw, setKmAtualRaw] = useState('');
   const [view, setView] = useState<'dashboard' | 'register' | 'history' | 'manage'>('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);
+
+  // Loaded data from DB or localStorage
+  const [itensPadrao, setItensPadrao] = useState<ItemPadrao[]>([]);
+  const [trocas, setTrocas] = useState<Troca[]>([]);
 
   // Register form state
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -71,30 +91,65 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
   // Expanded status sections
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ vencido: true, proximo: true });
 
-  useEffect(() => {
-    if (isOpen) {
+  // Load all data (DB if logged in, localStorage fallback)
+  const loadAllData = useCallback(async () => {
+    setLoading(true);
+    try {
+      if (userId) {
+        const [km, itens, trocasData] = await Promise.all([
+          loadKmAtualDB(userId),
+          loadItensPadraoDB(userId, vehicleType),
+          loadTrocasDB(userId, vehicleType),
+        ]);
+        setKmAtualRaw(km > 0 ? km.toString() : '');
+        setItensPadrao(itens);
+        setTrocas(trocasData);
+      } else {
+        const km = loadKmAtual();
+        setKmAtualRaw(km > 0 ? km.toString() : '');
+        setItensPadrao(loadItensPadrao(vehicleType));
+        setTrocas(loadTrocas(vehicleType));
+      }
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err);
+      // Fallback to localStorage
       const km = loadKmAtual();
       setKmAtualRaw(km > 0 ? km.toString() : '');
-      setView('dashboard');
-      setRefreshKey(k => k + 1);
+      setItensPadrao(loadItensPadrao(vehicleType));
+      setTrocas(loadTrocas(vehicleType));
+    } finally {
+      setLoading(false);
     }
-  }, [isOpen, vehicleType]);
+  }, [userId, vehicleType]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setView('dashboard');
+      loadAllData();
+    }
+  }, [isOpen, vehicleType, loadAllData]);
+
+  // Reload when refreshKey changes (after mutations)
+  useEffect(() => {
+    if (isOpen && refreshKey > 0) {
+      loadAllData();
+    }
+  }, [refreshKey]);
 
   const kmAtual = parseInt(kmAtualRaw, 10) || 0;
 
-  const itensPadrao = useMemo(() => loadItensPadrao(vehicleType), [vehicleType, refreshKey]);
-
   const statusData = useMemo(
-    () => calcularStatusTodos(vehicleType, kmAtual),
-    [vehicleType, kmAtual, refreshKey]
+    () => calcularStatusTodosFromData(itensPadrao, trocas, kmAtual),
+    [itensPadrao, trocas, kmAtual]
   );
 
-  const trocas = useMemo(() => loadTrocas(vehicleType), [vehicleType, refreshKey]);
-
-  const handleSaveKm = () => {
+  const handleSaveKm = async () => {
     if (kmAtual > 0) {
-      saveKmAtual(kmAtual);
-      setRefreshKey(k => k + 1);
+      if (userId) {
+        await saveKmAtualDB(userId, kmAtual);
+      } else {
+        saveKmAtual(kmAtual);
+      }
       toast({ title: 'KM Atualizado!', description: `${formatKm(kmAtual)} km salvo.` });
     }
   };
@@ -105,7 +160,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     );
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const kmTroca = parseInt(kmTrocaRaw, 10) || 0;
     if (kmTroca <= 0) {
       toast({ title: 'Erro', description: 'Informe o KM da troca.', variant: 'destructive' });
@@ -114,7 +169,6 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
     const items: { nome: string; kmIntervalo: number }[] = [];
 
-    // Standard items
     for (const nome of selectedItems) {
       const found = itensPadrao.find(p => p.nome === nome);
       if (found) {
@@ -122,7 +176,6 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
       }
     }
 
-    // Free item
     if (itemLivre.trim()) {
       items.push({ nome: itemLivre.trim(), kmIntervalo: 0 });
     }
@@ -134,26 +187,43 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
     const valorNum = valor ? parseFloat(valor.replace(',', '.')) : undefined;
 
-    for (const item of items) {
-      registrarTroca({
-        data: format(new Date(), 'yyyy-MM-dd'),
-        kmTroca: kmTroca,
-        item: item.nome,
-        kmIntervalo: item.kmIntervalo,
-        marca: marca || undefined,
-        valor: valorNum,
-        obs: obs || undefined,
-      }, vehicleType);
-    }
+    setLoading(true);
+    try {
+      for (const item of items) {
+        const trocaData = {
+          data: format(new Date(), 'yyyy-MM-dd'),
+          kmTroca,
+          item: item.nome,
+          kmIntervalo: item.kmIntervalo,
+          marca: marca || undefined,
+          valor: valorNum,
+          obs: obs || undefined,
+        };
+        if (userId) {
+          await registrarTrocaDB(userId, trocaData, vehicleType);
+        } else {
+          registrarTroca(trocaData, vehicleType);
+        }
+      }
 
-    toast({ title: 'Registrado!', description: `${items.length} troca(s) registrada(s) em ${formatKm(kmTroca)} km.` });
-    resetForm();
-    setRefreshKey(k => k + 1);
-    setView('dashboard');
+      toast({ title: 'Registrado!', description: `${items.length} troca(s) registrada(s) em ${formatKm(kmTroca)} km.` });
+      resetForm();
+      setRefreshKey(k => k + 1);
+      setView('dashboard');
+    } catch (err) {
+      console.error('Erro ao registrar troca:', err);
+      toast({ title: 'Erro', description: 'Falha ao salvar troca.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteTroca = (id: string) => {
-    deleteTroca(id, vehicleType);
+  const handleDeleteTroca = async (id: string) => {
+    if (userId) {
+      await deleteTrocaDB(id);
+    } else {
+      deleteTroca(id, vehicleType);
+    }
     setRefreshKey(k => k + 1);
     toast({ title: 'Removido', description: 'Registro excluído.' });
   };
@@ -197,20 +267,28 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     setNewItemKmRaw('');
   };
 
-  const handleSaveItems = () => {
+  const handleSaveItems = async () => {
     const valid = editableItems.filter(i => i.nome.trim());
     if (valid.length === 0) {
       toast({ title: 'Erro', description: 'Adicione pelo menos um item.', variant: 'destructive' });
       return;
     }
-    saveItensPadrao(valid, vehicleType);
+    if (userId) {
+      await saveItensPadraoDB(userId, valid, vehicleType);
+    } else {
+      saveItensPadrao(valid, vehicleType);
+    }
     setRefreshKey(k => k + 1);
     toast({ title: 'Salvo!', description: `${valid.length} itens salvos.` });
     setView('dashboard');
   };
 
-  const handleResetItems = () => {
-    resetItensPadrao(vehicleType);
+  const handleResetItems = async () => {
+    if (userId) {
+      await resetItensPadraoDB(userId, vehicleType);
+    } else {
+      resetItensPadrao(vehicleType);
+    }
     setEditableItems([...ITENS_PADRAO[vehicleType]]);
     setRefreshKey(k => k + 1);
     toast({ title: 'Restaurado!', description: 'Itens padrão restaurados.' });
@@ -242,7 +320,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
             <div>Última: {formatKm(status.ultimaTroca.kmTroca)} km ({format(new Date(status.ultimaTroca.data + 'T00:00:00'), 'dd/MM/yy')})</div>
             {status.kmProxima && <div>Próxima: {formatKm(status.kmProxima)} km</div>}
-            {status.ultimaTroca.marca && <div>Marca: {status.ultimaTroca.marca}{status.ultimaTroca.valor ? ` ${formatCurrency(status.ultimaTroca.valor)}` : ''}</div>}
+            {status.ultimaTroca.marca && <div>Marca: {status.ultimaTroca.marca}{status.ultimaTroca.valor ? ` · ${formatCurrency(status.ultimaTroca.valor)}` : ''}</div>}
           </div>
         )}
         {!status.ultimaTroca && status.status === 'vencido' && (
@@ -348,7 +426,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
   const renderRegister = () => {
     return (
       <>
-        {/* KM da Troca - fixo no topo */}
+        {/* KM da Troca */}
         <div>
           <label className="text-[10px] text-primary font-bold uppercase block mb-1">KM da Troca</label>
           <input
@@ -361,7 +439,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           />
         </div>
 
-        {/* Lista de itens com scroll nativo */}
+        {/* Lista de itens */}
         <label className="text-[10px] text-primary font-bold uppercase block">Itens ({itensPadrao.length})</label>
         <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-1">
           {itensPadrao.map(item => {
@@ -407,7 +485,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           </div>
         </div>
 
-        {/* Campos extras e botões - fixos na parte inferior */}
+        {/* Campos extras */}
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className="text-[10px] text-muted-foreground font-medium uppercase block mb-1">Marca</label>
@@ -444,7 +522,9 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={() => { resetForm(); setView('dashboard'); }}>Voltar</Button>
-          <Button className="flex-1" onClick={handleRegister}>SALVAR</Button>
+          <Button className="flex-1" onClick={handleRegister} disabled={loading}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'SALVAR'}
+          </Button>
         </div>
       </>
     );
@@ -520,7 +600,9 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={() => setView('dashboard')}>Cancelar</Button>
-          <Button className="flex-1" onClick={handleSaveItems}>SALVAR ITENS</Button>
+          <Button className="flex-1" onClick={handleSaveItems} disabled={loading}>
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'SALVAR ITENS'}
+          </Button>
         </div>
       </>
     );
@@ -571,10 +653,18 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
         </DialogHeader>
 
         <div className="flex-1 flex flex-col gap-3 min-h-0">
-          {view === 'dashboard' && renderDashboard()}
-          {view === 'register' && renderRegister()}
-          {view === 'history' && renderHistory()}
-          {view === 'manage' && renderManage()}
+          {loading && view === 'dashboard' ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <>
+              {view === 'dashboard' && renderDashboard()}
+              {view === 'register' && renderRegister()}
+              {view === 'history' && renderHistory()}
+              {view === 'manage' && renderManage()}
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
