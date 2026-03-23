@@ -596,7 +596,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={() => setView('dashboard')}>Cancelar</Button>
