@@ -612,7 +612,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     const sorted = [...trocas].sort((a, b) => b.kmTroca - a.kmTroca);
     return (
       <>
-        <ScrollArea className="flex-1 min-h-0 max-h-[50vh]">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
           {sorted.length === 0 ? (
             <p className="text-center text-muted-foreground text-sm py-8">Nenhuma troca registrada.</p>
           ) : (
