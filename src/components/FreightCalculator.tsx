@@ -110,6 +110,16 @@ export const FreightCalculator = ({
             CONTROLE DE KM
           </Button>
 
+          {/* Rendimento Combustível */}
+          <Button
+            variant="outline"
+            onClick={onOpenFuelConsumption}
+            className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg"
+          >
+            <Fuel className="w-5 h-5" />
+            RENDIMENTO COMBUSTÍVEL
+          </Button>
+
           {/* Monitorar Manutenções */}
           <Button
             variant="outline"
