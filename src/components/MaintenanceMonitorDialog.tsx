@@ -404,7 +404,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
         )}
 
         {/* Actions */}
