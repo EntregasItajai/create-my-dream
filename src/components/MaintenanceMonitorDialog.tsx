@@ -540,7 +540,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           </Button>
         </div>
 
-        <ScrollArea className="max-h-[45vh]">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
           <div className="space-y-2 px-1">
             {editableItems.map((item, index) => (
               <div key={index} className="flex items-center gap-2 bg-muted/30 rounded-lg p-2">
