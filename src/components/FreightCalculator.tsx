@@ -20,7 +20,7 @@ interface FreightCalculatorProps {
 export const FreightCalculator = ({
   distance, hours, minutes,
   onDistanceChange, onHoursChange, onMinutesChange,
-  onCalculate, onCalculateCosts, onOpenKmControl, onOpenMaintenanceMonitor, vehicleType,
+  onCalculate, onCalculateCosts, onOpenKmControl, onOpenMaintenanceMonitor, onOpenFuelConsumption, vehicleType,
 }: FreightCalculatorProps) => {
   const VehicleIcon = vehicleType === 'moto' ? Bike : Car;
   const vehicleLabel = vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro';
