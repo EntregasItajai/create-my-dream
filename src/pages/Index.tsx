@@ -317,6 +317,12 @@ const Index = () => {
               vehicleType={vehicleType}
             />
 
+            <FuelConsumptionDialog
+              isOpen={fuelConsumptionOpen}
+              onClose={() => setFuelConsumptionOpen(false)}
+              vehicleType={vehicleType}
+            />
+
             {/* Área de banners do rodapé */}
             <div className="space-y-3">
               {/* 3 banners grandes */}
