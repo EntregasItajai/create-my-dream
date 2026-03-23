@@ -295,6 +295,10 @@ const Index = () => {
                 if (!user) { toast({ title: 'Login necessário', description: 'Faça login para acessar o Monitor de Manutenções.', variant: 'destructive' }); navigate('/auth'); return; }
                 setMaintenanceMonitorOpen(true);
               }}
+              onOpenFuelConsumption={() => {
+                if (!user) { toast({ title: 'Login necessário', description: 'Faça login para acessar o Rendimento.', variant: 'destructive' }); navigate('/auth'); return; }
+                setFuelConsumptionOpen(true);
+              }}
               vehicleType={vehicleType}
             />
 
