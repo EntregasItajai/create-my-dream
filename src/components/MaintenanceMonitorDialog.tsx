@@ -4,7 +4,7 @@ import { ptBR } from 'date-fns/locale';
 import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List, Settings, RotateCcw, Pencil, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { VehicleType } from '@/data/maintenanceItems';
 import {
