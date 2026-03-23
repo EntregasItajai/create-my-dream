@@ -637,7 +637,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
         <Button variant="outline" className="w-full" onClick={() => setView('dashboard')}>Voltar</Button>
       </>
     );
