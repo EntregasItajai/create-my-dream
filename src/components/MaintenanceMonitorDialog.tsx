@@ -380,7 +380,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
         {/* Expandable lists */}
         {kmAtual > 0 && (
-          <ScrollArea className="flex-1 min-h-0 max-h-[35vh]">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="space-y-2">
               {groups.map(({ key, items }) => {
                 if (items.length === 0) return null;
