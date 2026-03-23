@@ -7,6 +7,7 @@ import { FreightCalculator } from '@/components/FreightCalculator';
 import { FreightResult } from '@/components/FreightResult';
 import { KmControlDialog } from '@/components/KmControlDialog';
 import { MaintenanceMonitorDialog } from '@/components/MaintenanceMonitorDialog';
+import { FuelConsumptionDialog } from '@/components/FuelConsumptionDialog';
 
 import { AdBanner } from '@/components/AdBanner';
 import { toast } from '@/hooks/use-toast';
