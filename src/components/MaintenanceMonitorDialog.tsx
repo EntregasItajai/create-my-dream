@@ -380,7 +380,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
         {/* Expandable lists */}
         {kmAtual > 0 && (
-          <ScrollArea className="flex-1 min-h-0 max-h-[35vh]">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="space-y-2">
               {groups.map(({ key, items }) => {
                 if (items.length === 0) return null;
@@ -652,7 +652,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col gap-3 min-h-0">
+        <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
           {loading && view === 'dashboard' ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
