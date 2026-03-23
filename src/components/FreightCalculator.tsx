@@ -1,4 +1,4 @@
-import { Calculator, Bike, Car, ClipboardList, Coins, Wrench } from 'lucide-react';
+import { Calculator, Bike, Car, ClipboardList, Coins, Wrench, Fuel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VehicleType } from '@/data/maintenanceItems';
 
