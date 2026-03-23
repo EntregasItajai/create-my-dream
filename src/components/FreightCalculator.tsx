@@ -1,4 +1,4 @@
-import { Calculator, Bike, Car, ClipboardList, Coins, Wrench } from 'lucide-react';
+import { Calculator, Bike, Car, ClipboardList, Coins, Wrench, Fuel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VehicleType } from '@/data/maintenanceItems';
 
@@ -13,13 +13,14 @@ interface FreightCalculatorProps {
   onCalculateCosts: () => void;
   onOpenKmControl: () => void;
   onOpenMaintenanceMonitor: () => void;
+  onOpenFuelConsumption: () => void;
   vehicleType: VehicleType;
 }
 
 export const FreightCalculator = ({
   distance, hours, minutes,
   onDistanceChange, onHoursChange, onMinutesChange,
-  onCalculate, onCalculateCosts, onOpenKmControl, onOpenMaintenanceMonitor, vehicleType,
+  onCalculate, onCalculateCosts, onOpenKmControl, onOpenMaintenanceMonitor, onOpenFuelConsumption, vehicleType,
 }: FreightCalculatorProps) => {
   const VehicleIcon = vehicleType === 'moto' ? Bike : Car;
   const vehicleLabel = vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro';
@@ -107,6 +108,16 @@ export const FreightCalculator = ({
           >
             <ClipboardList className="w-5 h-5" />
             CONTROLE DE KM
+          </Button>
+
+          {/* Rendimento Combustível */}
+          <Button
+            variant="outline"
+            onClick={onOpenFuelConsumption}
+            className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg"
+          >
+            <Fuel className="w-5 h-5" />
+            RENDIMENTO COMBUSTÍVEL
           </Button>
 
           {/* Monitorar Manutenções */}

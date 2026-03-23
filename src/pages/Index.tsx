@@ -7,6 +7,7 @@ import { FreightCalculator } from '@/components/FreightCalculator';
 import { FreightResult } from '@/components/FreightResult';
 import { KmControlDialog } from '@/components/KmControlDialog';
 import { MaintenanceMonitorDialog } from '@/components/MaintenanceMonitorDialog';
+import { FuelConsumptionDialog } from '@/components/FuelConsumptionDialog';
 
 import { AdBanner } from '@/components/AdBanner';
 import { toast } from '@/hooks/use-toast';
@@ -112,6 +113,7 @@ const Index = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kmControlOpen, setKmControlOpen] = useState(false);
   const [maintenanceMonitorOpen, setMaintenanceMonitorOpen] = useState(false);
+  const [fuelConsumptionOpen, setFuelConsumptionOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings(vehicleType));
   const [distance, setDistance] = useState('');
   const [hours, setHours] = useState('');
@@ -293,6 +295,10 @@ const Index = () => {
                 if (!user) { toast({ title: 'Login necessário', description: 'Faça login para acessar o Monitor de Manutenções.', variant: 'destructive' }); navigate('/auth'); return; }
                 setMaintenanceMonitorOpen(true);
               }}
+              onOpenFuelConsumption={() => {
+                if (!user) { toast({ title: 'Login necessário', description: 'Faça login para acessar o Rendimento.', variant: 'destructive' }); navigate('/auth'); return; }
+                setFuelConsumptionOpen(true);
+              }}
               vehicleType={vehicleType}
             />
 
@@ -308,6 +314,12 @@ const Index = () => {
             <MaintenanceMonitorDialog
               isOpen={maintenanceMonitorOpen}
               onClose={() => setMaintenanceMonitorOpen(false)}
+              vehicleType={vehicleType}
+            />
+
+            <FuelConsumptionDialog
+              isOpen={fuelConsumptionOpen}
+              onClose={() => setFuelConsumptionOpen(false)}
               vehicleType={vehicleType}
             />
 
