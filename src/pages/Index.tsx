@@ -113,6 +113,7 @@ const Index = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kmControlOpen, setKmControlOpen] = useState(false);
   const [maintenanceMonitorOpen, setMaintenanceMonitorOpen] = useState(false);
+  const [fuelConsumptionOpen, setFuelConsumptionOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => loadSettings(vehicleType));
   const [distance, setDistance] = useState('');
   const [hours, setHours] = useState('');
