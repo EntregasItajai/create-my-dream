@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List, Settings, RotateCcw, Pencil, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { VehicleType } from '@/data/maintenanceItems';
 import {
@@ -380,7 +380,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
 
         {/* Expandable lists */}
         {kmAtual > 0 && (
-          <ScrollArea className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
             <div className="space-y-2">
               {groups.map(({ key, items }) => {
                 if (items.length === 0) return null;
@@ -404,7 +404,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
         )}
 
         {/* Actions */}
@@ -540,7 +540,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           </Button>
         </div>
 
-        <ScrollArea className="max-h-[45vh]">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
           <div className="space-y-2 px-1">
             {editableItems.map((item, index) => (
               <div key={index} className="flex items-center gap-2 bg-muted/30 rounded-lg p-2">
@@ -596,7 +596,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
               </div>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={() => setView('dashboard')}>Cancelar</Button>
@@ -612,7 +612,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     const sorted = [...trocas].sort((a, b) => b.kmTroca - a.kmTroca);
     return (
       <>
-        <ScrollArea className="flex-1 min-h-0 max-h-[50vh]">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
           {sorted.length === 0 ? (
             <p className="text-center text-muted-foreground text-sm py-8">Nenhuma troca registrada.</p>
           ) : (
@@ -637,7 +637,7 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
         <Button variant="outline" className="w-full" onClick={() => setView('dashboard')}>Voltar</Button>
       </>
     );
@@ -650,9 +650,12 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           <DialogTitle className="text-center text-lg">
             🔧 Monitorar Manutenções — {vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Painel para acompanhar, registrar e gerenciar manutenções por quilometragem.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto">
+        <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
           {loading && view === 'dashboard' ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
