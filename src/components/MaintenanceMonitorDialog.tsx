@@ -650,6 +650,9 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
           <DialogTitle className="text-center text-lg">
             🔧 Monitorar Manutenções — {vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro'}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Painel para acompanhar, registrar e gerenciar manutenções por quilometragem.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
