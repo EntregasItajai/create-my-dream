@@ -13,6 +13,7 @@ interface FreightCalculatorProps {
   onCalculateCosts: () => void;
   onOpenKmControl: () => void;
   onOpenMaintenanceMonitor: () => void;
+  onOpenFuelConsumption: () => void;
   vehicleType: VehicleType;
 }
 
