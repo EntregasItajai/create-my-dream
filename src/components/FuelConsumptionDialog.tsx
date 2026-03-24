@@ -73,8 +73,10 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
     if (!num) return '';
     return parseInt(num, 10).toLocaleString('pt-BR');
   };
-  const handleKmInput = (value: string, setter: (v: string) => void) => {
-    setter(value.replace(/\D/g, ''));
+  const handleKmInput = (value: string, setter: (v: string) => void, persist?: boolean) => {
+    const clean = value.replace(/\D/g, '');
+    setter(clean);
+    if (persist) saveLastKm(clean, vehicleType);
   };
 
   // Litros input: allow decimals (e.g. 8.46)
@@ -261,7 +263,7 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
                   inputMode="numeric"
                   placeholder="0"
                   value={formatInputDisplay(kmInicial)}
-                  onChange={(e) => handleKmInput(e.target.value, setKmInicial)}
+                  onChange={(e) => handleKmInput(e.target.value, setKmInicial, true)}
                   className="w-full bg-input border border-border text-foreground text-center text-sm font-bold rounded-lg py-2 px-2 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
                 />
               </div>
