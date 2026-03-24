@@ -73,8 +73,10 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
     if (!num) return '';
     return parseInt(num, 10).toLocaleString('pt-BR');
   };
-  const handleKmInput = (value: string, setter: (v: string) => void) => {
-    setter(value.replace(/\D/g, ''));
+  const handleKmInput = (value: string, setter: (v: string) => void, persist?: boolean) => {
+    const clean = value.replace(/\D/g, '');
+    setter(clean);
+    if (persist) saveLastKm(clean, vehicleType);
   };
 
   // Litros input: allow decimals (e.g. 8.46)
