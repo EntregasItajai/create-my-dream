@@ -263,7 +263,7 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
                   inputMode="numeric"
                   placeholder="0"
                   value={formatInputDisplay(kmInicial)}
-                  onChange={(e) => handleKmInput(e.target.value, setKmInicial)}
+                  onChange={(e) => handleKmInput(e.target.value, setKmInicial, true)}
                   className="w-full bg-input border border-border text-foreground text-center text-sm font-bold rounded-lg py-2 px-2 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground"
                 />
               </div>
