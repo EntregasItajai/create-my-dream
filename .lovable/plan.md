@@ -1,41 +1,29 @@
-## Substituir rodape Instagram por area de banners
+## Conexão com GitHub
 
-### O que muda
+Eu (agente) não conecto o projeto ao GitHub diretamente — essa ação é feita por você pela interface do Lovable, não por comando meu no chat. O que existe são duas coisas diferentes:
 
-- Remover o componente `TextBanner` (Instagram) do rodape
-- No lugar, criar uma area com **5 banners de anuncio**:
-  - **3 banners grandes** empilhados (largura total, ~728x90 cada)
-  - **2 banners pequenos** lado a lado (cada um ~50% da largura)
-- Buscar banners da posicao `footer` na tabela do Supabase
-- Se nao houver banners cadastrados, exibir os placeholders "Anuncie Aqui" com link pro WhatsApp
+### 1. Git Sync (o que você provavelmente quer)
+Sincroniza o código do projeto Lovable com um repositório GitHub (two-way sync).
 
-### Layout final do rodape (dentro do `<main>`)
+**Como ativar:**
+1. No editor Lovable, abra o menu **+** (canto inferior esquerdo do chat)
+2. Clique em **GitHub → Connect project**
+3. Autorize o app do Lovable no GitHub
+4. Escolha a conta/organização
+5. Clique em **Create Repository**
 
-```text
-+-------------------------------+
-|      Banner Grande 1          |
-+-------------------------------+
-|      Banner Grande 2          |
-+-------------------------------+
-|      Banner Grande 3          |
-+-------------------------------+
-| Banner Peq 1 | Banner Peq 2  |
-+-------------------------------+
-```
+Depois disso, tudo que eu alterar aqui vai para o GitHub automaticamente, e commits feitos no GitHub voltam para o Lovable.
 
-### Detalhes tecnicos
+### 2. Conector GitHub API (só se precisar chamar a API do GitHub dentro do app)
+Serve para o app consumir dados do GitHub em runtime (ex.: listar issues, repos). Isso sim eu configuro via `standard_connectors--connect`, mas **não é o que sincroniza o código do projeto**.
 
-**Arquivo: `src/pages/Index.tsx**`
+---
 
-- Remover o import de `TextBanner`
-- Substituir o bloco do banner horizontal + `TextBanner` por:
-  - 3x `AdBanner` com largura total (width=728, height=90)
-  - 1 `div` com `flex` e `gap` contendo 2x `AdBanner` menores (width=350, height=150)
-- Usar `footerBanners` (posicao `footer`) para preencher os 5 slots; slots sem banner mostram placeholder
+### O que preciso confirmar
 
-**Arquivo: `src/components/TextBanner.tsx**`
+Me diga qual dos dois você quer:
 
-- Nenhuma alteracao (pode ser removido depois se nao for usado em outro lugar)
+- **(A)** Sincronizar o código deste projeto com um repositório GitHub (Git Sync) → você mesma faz pelo menu + do editor; eu só te oriento.
+- **(B)** Fazer o app ler/gravar dados na API do GitHub em runtime → eu configuro o conector.
 
-**Nenhuma alteracao** no `AdBanner.tsx` -- o componente ja suporta qualquer dimensao e fallback.  
-E lá no topo onde tem "Entregas Itajaí" Calculadora de rota , trque o Calculadora de rota por "Visite nosso instagram' com o mesmo link do visite nosso instagram que está sendo retirado do rodapé
+Se for (A) e você já tinha um repo conectado antes que parou de sincronizar, me avise que abro um plano específico de troubleshooting.
