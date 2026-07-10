@@ -159,14 +159,17 @@ export function calcularStatusItem(itemNome: string, kmIntervalo: number, trocas
     return { item: itemNome, status: 'vencido', kmProxima: null, kmFaltam: 0 };
   }
 
-  if (kmIntervalo === 0 || ultima.kmProxima == null) {
+  if (kmIntervalo === 0) {
     return { item: itemNome, status: 'livre', ultimaTroca: ultima, kmProxima: null };
   }
 
-  const kmFaltam = ultima.kmProxima - kmAtual;
+  // Sempre recomputa a próxima troca com o intervalo ATUAL do item padrão,
+  // para refletir imediatamente ajustes feitos em "Gerenciar Itens".
+  const kmProxima = ultima.kmTroca + kmIntervalo;
+  const kmFaltam = kmProxima - kmAtual;
 
   let status: StatusTroca;
-  if (kmAtual >= ultima.kmProxima) {
+  if (kmAtual >= kmProxima) {
     status = 'vencido';
   } else if (kmFaltam <= 1000) {
     status = 'proximo';
@@ -174,7 +177,7 @@ export function calcularStatusItem(itemNome: string, kmIntervalo: number, trocas
     status = 'ok';
   }
 
-  return { item: itemNome, status, ultimaTroca: ultima, kmProxima: ultima.kmProxima, kmFaltam };
+  return { item: itemNome, status, ultimaTroca: ultima, kmProxima, kmFaltam };
 }
 
 export function calcularStatusTodos(vehicle: VehicleType, kmAtual: number): {
