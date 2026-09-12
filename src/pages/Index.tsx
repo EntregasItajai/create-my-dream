@@ -185,11 +185,7 @@ const Index = () => {
   };
 
   const handleCalculate = () => {
-    if (!user) {
-      toast({ title: 'Login necessário', description: 'Faça login para calcular o valor da entrega.', variant: 'destructive' });
-      navigate('/auth');
-      return;
-    }
+    if (requireLoginForCalculation()) return;
 
     const km = parseFloat(distance);
     const h = parseFloat(hours) || 0;
