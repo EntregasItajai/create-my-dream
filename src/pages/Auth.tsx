@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,17 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const premiumRedirect = (location.state as any)?.premiumRedirect;
+  const locationState = location.state as { from?: string } | null;
+  const returnTo = locationState?.from === '/admin' ? '/admin' : '/';
+
+  useEffect(() => {
+    const checkExistingLogin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) navigate(returnTo, { replace: true });
+    };
+
+    checkExistingLogin();
+  }, [navigate, returnTo]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +35,7 @@ const Auth = () => {
         toast({ title: 'Erro no login', description: error.message, variant: 'destructive' });
       } else {
         toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
-        navigate('/');
+        navigate(returnTo, { replace: true });
       }
     } else {
       const { data, error } = await supabase.auth.signUp({
@@ -51,7 +61,7 @@ const Auth = () => {
             : 'Verifique seu e-mail para confirmar a conta antes de fazer login.',
         });
         if (data.session) {
-          navigate('/');
+          navigate(returnTo, { replace: true });
         }
       } else {
         toast({ title: 'Erro inesperado', description: 'Nenhum usuário retornado. Tente novamente.', variant: 'destructive' });
@@ -61,12 +71,14 @@ const Auth = () => {
   };
 
   const handleGoogleLogin = async () => {
+    setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}${returnTo}` },
     });
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      setLoading(false);
     }
   };
 
@@ -80,19 +92,9 @@ const Auth = () => {
           </div>
           <h1 className="text-2xl font-black text-secondary tracking-tight">ENTREGAS ITAJAÍ</h1>
           <p className="text-primary font-semibold mt-2 text-sm tracking-wide uppercase">
-            Acesse ferramentas exclusivas para a sua operação
+            Entre para acessar todas as ferramentas
           </p>
         </div>
-
-        {/* Premium redirect banner */}
-        {premiumRedirect && (
-          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center gap-3">
-            <Lock className="w-5 h-5 text-primary shrink-0" />
-            <p className="text-sm text-foreground">
-              <strong>Faça login</strong> para acessar os recursos Premium.
-            </p>
-          </div>
-        )}
 
         <div className="bg-card rounded-2xl border border-border p-6 space-y-5 shadow-lg shadow-black/20">
           <p className="text-center text-sm text-muted-foreground">
@@ -103,6 +105,7 @@ const Auth = () => {
           <Button
             variant="outline"
             onClick={handleGoogleLogin}
+            disabled={loading}
             className="w-full h-12 font-bold text-base border-primary/30 hover:bg-primary/10 hover:border-primary/50 transition-all"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -111,7 +114,7 @@ const Auth = () => {
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
-            Entrar com Google
+            {loading ? 'Aguarde...' : 'Entrar com Google'}
           </Button>
 
           {/* Divider */}

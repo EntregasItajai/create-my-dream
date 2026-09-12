@@ -11,7 +11,7 @@ export const useSubscription = () => {
 
   const fetchRoles = useCallback(async (userId: string) => {
     setLoading(true);
-    
+
     const { data, error } = await supabase
       .from('user_roles')
       .select('role')
@@ -19,10 +19,20 @@ export const useSubscription = () => {
 
     if (error) {
       console.error('[useSubscription] Error fetching roles:', error.message);
-      setRoles([]);
+      const { data: hasAdmin, error: roleError } = await supabase.rpc('has_role', {
+        _user_id: userId,
+        _role: 'admin',
+      });
+
+      if (roleError) {
+        console.error('[useSubscription] Error checking admin role:', roleError.message);
+        setRoles([]);
+      } else {
+        setRoles(hasAdmin ? ['admin'] : ['user']);
+      }
     } else if (data) {
       const mapped = data.map((r) => r.role as AppRole);
-      setRoles(mapped);
+      setRoles(mapped.length > 0 ? mapped : ['user']);
     }
     setLoading(false);
   }, []);
@@ -42,5 +52,11 @@ export const useSubscription = () => {
   const isPremium = roles.includes('premium') || roles.includes('admin');
   const isAdmin = roles.includes('admin');
 
-  return { roles, isPremium, isAdmin, loading, refetchRoles: () => user && fetchRoles(user.id) };
+  return {
+    roles,
+    isPremium,
+    isAdmin,
+    loading,
+    refetchRoles: () => user ? fetchRoles(user.id) : Promise.resolve(),
+  };
 };
