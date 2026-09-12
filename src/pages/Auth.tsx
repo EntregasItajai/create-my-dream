@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { Mail, Lock, UserPlus, LogIn, ArrowLeft, Truck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { getAuthCallbackUrl, getAuthOrigin, getPasswordResetUrl } from '@/lib/authUrls';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,17 +16,28 @@ const Auth = () => {
   const [forgotPassword, setForgotPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
   const locationState = location.state as { from?: string } | null;
-  const returnTo = locationState?.from === '/admin' ? '/admin' : '/';
+  const queryReturnTo = new URLSearchParams(location.search).get('returnTo');
+  const returnTo = locationState?.from === '/admin' || queryReturnTo === '/admin' ? '/admin' : '/';
 
   useEffect(() => {
-    const checkExistingLogin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) navigate(returnTo, { replace: true });
-    };
+    if (!authLoading && user) navigate(returnTo, { replace: true });
+  }, [authLoading, navigate, returnTo, user]);
 
-    checkExistingLogin();
-  }, [navigate, returnTo]);
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const query = new URLSearchParams(location.search);
+    const oauthError = hash.get('error_description') || query.get('error_description');
+
+    if (!oauthError) return;
+
+    toast({
+      title: 'Não foi possível entrar com Google',
+      description: decodeURIComponent(oauthError.replace(/\+/g, ' ')),
+      variant: 'destructive',
+    });
+  }, [location.search]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +62,7 @@ const Auth = () => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: window.location.origin },
+        options: { emailRedirectTo: getAuthCallbackUrl(returnTo) },
       });
       if (error) {
         toast({ title: 'Erro no cadastro', description: error.message, variant: 'destructive' });
@@ -80,7 +93,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: getPasswordResetUrl(),
     });
     setLoading(false);
 
@@ -97,7 +110,7 @@ const Auth = () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}${returnTo}` },
+      options: { redirectTo: getAuthCallbackUrl(returnTo) },
     });
     if (error) {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });

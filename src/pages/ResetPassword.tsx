@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
+import { getAuthOrigin } from '@/lib/authUrls';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -81,6 +82,11 @@ const ResetPassword = () => {
           <Button type="button" variant="ghost" className="w-full" onClick={() => navigate('/auth')}>
             Voltar ao login
           </Button>
+          {window.location.origin !== getAuthOrigin() && (
+            <Button type="button" variant="link" className="w-full" asChild>
+              <a href={`${getAuthOrigin()}/auth`}>Abrir no endereço oficial</a>
+            </Button>
+          )}
         </form>
       </section>
     </main>
