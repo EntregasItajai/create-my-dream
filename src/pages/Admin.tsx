@@ -34,7 +34,7 @@ const Admin = () => {
   useEffect(() => {
     if (!authLoading && !subLoading) {
       if (!user || !isAdmin) {
-        navigate('/');
+        navigate(user ? '/' : '/auth', { state: { from: '/admin' }, replace: true });
         return;
       }
       fetchUsers();

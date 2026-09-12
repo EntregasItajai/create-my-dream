@@ -2,7 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { VehicleType } from '@/data/maintenanceItems';
 import { getLatestFuelKmDB } from '@/data/fuelSupabase';
-import { calcularStatusTodosFromData } from '@/data/maintenanceMonitorSupabase';
+import {
+  calcularStatusTodosFromData,
+  loadItensPadraoDB,
+  loadKmAtualDB,
+  loadTrocasDB,
+} from '@/data/maintenanceMonitorSupabase';
 
 export type MaintenanceStatusType = 'ok' | 'proximo' | 'vencido';
 
@@ -19,18 +24,24 @@ export const useMaintenanceStatus = (vehicleType: VehicleType, enabled: boolean)
 
     const checkStatus = async () => {
       try {
-        const km = await getLatestFuelKmDB(user.id, vehicleType);
+        const [fuelKm, maintenanceKm, itensPadrao, trocas] = await Promise.all([
+          getLatestFuelKmDB(user.id, vehicleType),
+          loadKmAtualDB(user.id),
+          loadItensPadraoDB(user.id, vehicleType),
+          loadTrocasDB(user.id, vehicleType),
+        ]);
+        const km = Math.max(fuelKm, maintenanceKm);
         if (km <= 0) {
           setStatus('ok');
           setLoading(false);
           return;
         }
 
-        const statusData = await calcularStatusTodosFromData(user.id, vehicleType, km);
+        const statusData = calcularStatusTodosFromData(itensPadrao, trocas, km);
 
-        if (statusData.vencido.length > 0) {
+        if (statusData.vencidos.length > 0) {
           setStatus('vencido');
-        } else if (statusData.proximo.length > 0) {
+        } else if (statusData.proximos.length > 0) {
           setStatus('proximo');
         } else {
           setStatus('ok');
