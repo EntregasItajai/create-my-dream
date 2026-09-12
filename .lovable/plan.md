@@ -1,29 +1,29 @@
-## Conexão com GitHub
+# Recuperar login e Painel ADM
 
-Eu (agente) não conecto o projeto ao GitHub diretamente — essa ação é feita por você pela interface do Lovable, não por comando meu no chat. O que existe são duas coisas diferentes:
+## Objetivo
+Restaurar o acesso ao aplicativo por e-mail/senha e Google, e garantir que a conta administradora volte a enxergar o atalho e acessar o Painel ADM.
 
-### 1. Git Sync (o que você provavelmente quer)
-Sincroniza o código do projeto Lovable com um repositório GitHub (two-way sync).
+## Diagnóstico confirmado
+- O app está com três erros de compilação em `useMaintenanceStatus`: a função de status recebe parâmetros incompatíveis e o resultado é consultado com nomes incorretos (`vencido`/`proximo` em vez de `vencidos`/`proximos`). Isso impede o carregamento normal da aplicação, incluindo a tela de login.
+- O provedor Google responde e redireciona para o Google, portanto ele está habilitado no serviço de autenticação.
+- A rota `/admin` e o painel continuam no código. O atalho só aparece quando a consulta de cargos encontra a função `admin` para o usuário autenticado.
+- A chave pública configurada no app atualmente é diferente da chave pública enviada anteriormente; será necessário garantir que URL, chave e credenciais Google pertençam ao mesmo projeto.
 
-**Como ativar:**
-1. No editor Lovable, abra o menu **+** (canto inferior esquerdo do chat)
-2. Clique em **GitHub → Connect project**
-3. Autorize o app do Lovable no GitHub
-4. Escolha a conta/organização
-5. Clique em **Create Repository**
+## Implementação
+1. Corrigir o indicador de manutenção para primeiro carregar itens e trocas do usuário, calcular o status com os dados corretos e usar as propriedades plurais retornadas.
+2. Fortalecer o estado de autenticação para validar o usuário atual, tratar falhas e concluir corretamente o retorno do Google.
+3. Preservar o destino após autenticação e retornar o usuário ao aplicativo ou ao Painel ADM, conforme a origem.
+4. Ajustar a consulta de cargos para atualizar após o login e distinguir claramente: conta autenticada sem cargo admin, falha de permissão e cargo admin confirmado.
+5. Confirmar que o atalho do Painel ADM reaparece para a conta administradora e que `/admin` continua bloqueado para usuários comuns.
+6. Remover da tela de login textos antigos sobre “Premium”, pois o aplicativo atual é gratuito com cadastro obrigatório.
 
-Depois disso, tudo que eu alterar aqui vai para o GitHub automaticamente, e commits feitos no GitHub voltam para o Lovable.
+## Validação
+- Confirmar compilação sem erros.
+- Testar cadastro/login por e-mail e senha.
+- Testar o redirecionamento Google até o retorno autenticado ao app.
+- Testar conta Admin: ícone visível e acesso a `/admin`.
+- Testar usuário comum: calculadora disponível após login e Painel ADM indisponível.
+- Testar usuário desconectado: qualquer uso da calculadora direciona para login.
 
-### 2. Conector GitHub API (só se precisar chamar a API do GitHub dentro do app)
-Serve para o app consumir dados do GitHub em runtime (ex.: listar issues, repos). Isso sim eu configuro via `standard_connectors--connect`, mas **não é o que sincroniza o código do projeto**.
-
----
-
-### O que preciso confirmar
-
-Me diga qual dos dois você quer:
-
-- **(A)** Sincronizar o código deste projeto com um repositório GitHub (Git Sync) → você mesma faz pelo menu + do editor; eu só te oriento.
-- **(B)** Fazer o app ler/gravar dados na API do GitHub em runtime → eu configuro o conector.
-
-Se for (A) e você já tinha um repo conectado antes que parou de sincronizar, me avise que abro um plano específico de troubleshooting.
+## Dependência externa
+As credenciais Google já foram informadas como segredos. Se o teste retornar erro de URL autorizada, será necessário conferir no Google Cloud se o URI autorizado é exatamente `https://etkfbliwhmqwfczghknh.supabase.co/auth/v1/callback`.
