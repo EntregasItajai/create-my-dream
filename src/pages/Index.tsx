@@ -121,24 +121,32 @@ const Index = () => {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [maintenanceItems, setMaintenanceItems] = useState<ItemManutencao[]>(() => loadMaintenanceItems(vehicleType));
 
-  // Exigir login para acessar a calculadora
-  useEffect(() => {
-    if (!authLoading && !user) {
-      toast({
-        title: 'Login necessário',
-        description: 'Faça login com Google ou cadastre-se para usar a calculadora.',
-      });
-      navigate('/auth', { replace: true });
-    }
-  }, [user, authLoading, navigate]);
+  // Limite de cálculos gratuitos para usuários não logados
+  const getFreeCalculationsCount = (): number => {
+    const stored = localStorage.getItem('free_calculations_count');
+    return stored ? parseInt(stored, 10) || 0 : 0;
+  };
 
-  if (authLoading || !user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Verificando login...</p>
-      </div>
-    );
-  }
+  const incrementFreeCalculationsCount = () => {
+    const current = getFreeCalculationsCount();
+    localStorage.setItem('free_calculations_count', String(current + 1));
+  };
+
+  const requireLoginForCalculation = (): boolean => {
+    if (user) return false;
+    const count = getFreeCalculationsCount();
+    if (count < 2) {
+      incrementFreeCalculationsCount();
+      return false;
+    }
+    toast({
+      title: 'Limite atingido',
+      description: 'Para continuar usando a ferramenta faça login.',
+      variant: 'destructive',
+    });
+    navigate('/auth');
+    return true;
+  };
 
   // Switch vehicle
   const handleVehicleChange = useCallback((type: VehicleType) => {
@@ -177,11 +185,7 @@ const Index = () => {
   };
 
   const handleCalculate = () => {
-    if (!user) {
-      toast({ title: 'Login necessário', description: 'Faça login para calcular o valor da entrega.', variant: 'destructive' });
-      navigate('/auth');
-      return;
-    }
+    if (requireLoginForCalculation()) return;
 
     const km = parseFloat(distance);
     const h = parseFloat(hours) || 0;
@@ -240,11 +244,7 @@ const Index = () => {
   };
 
   const handleCalculateCosts = () => {
-    if (!user) {
-      toast({ title: 'Login necessário', description: 'Faça login para calcular os custos da entrega.', variant: 'destructive' });
-      navigate('/auth');
-      return;
-    }
+    if (requireLoginForCalculation()) return;
 
     const km = parseFloat(distance);
 
