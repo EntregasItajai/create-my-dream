@@ -11,6 +11,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotPassword, setForgotPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = location.state as { from?: string } | null;
@@ -32,7 +33,14 @@ const Auth = () => {
     if (isLogin) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        toast({ title: 'Erro no login', description: error.message, variant: 'destructive' });
+        const invalidCredentials = error.message.toLowerCase().includes('invalid login credentials');
+        toast({
+          title: 'Não foi possível entrar',
+          description: invalidCredentials
+            ? 'Se sua conta foi criada pelo Google, use “Entrar com Google”. Caso contrário, confira a senha ou recupere o acesso.'
+            : error.message,
+          variant: 'destructive',
+        });
       } else {
         toast({ title: 'Bem-vindo!', description: 'Login realizado com sucesso.' });
         navigate(returnTo, { replace: true });
@@ -43,9 +51,7 @@ const Auth = () => {
         password,
         options: { emailRedirectTo: window.location.origin },
       });
-      console.log('[Auth] signUp response:', { data, error });
       if (error) {
-        console.error('[Auth] signUp error:', error.message, error.status);
         toast({ title: 'Erro no cadastro', description: error.message, variant: 'destructive' });
       } else if (data.user && data.user.identities && data.user.identities.length === 0) {
         toast({
@@ -68,6 +74,23 @@ const Auth = () => {
       }
     }
     setLoading(false);
+  };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+
+    if (error) {
+      toast({ title: 'Não foi possível enviar', description: error.message, variant: 'destructive' });
+      return;
+    }
+
+    toast({ title: 'Confira seu e-mail', description: 'Enviamos um link para você criar uma nova senha.' });
+    setForgotPassword(false);
   };
 
   const handleGoogleLogin = async () => {
@@ -98,11 +121,13 @@ const Auth = () => {
 
         <div className="bg-card rounded-2xl border border-border p-6 space-y-5 shadow-lg shadow-black/20">
           <p className="text-center text-sm text-muted-foreground">
-            {isLogin ? 'Entre na sua conta para continuar' : 'Crie sua conta gratuitamente'}
+            {forgotPassword
+              ? 'Informe seu e-mail para recuperar o acesso'
+              : isLogin ? 'Entre na sua conta para continuar' : 'Crie sua conta gratuitamente'}
           </p>
 
           {/* Google button — prominent */}
-          <Button
+          {!forgotPassword && <Button
             variant="outline"
             onClick={handleGoogleLogin}
             disabled={loading}
@@ -115,21 +140,21 @@ const Auth = () => {
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
             </svg>
             {loading ? 'Aguarde...' : 'Entrar com Google'}
-          </Button>
+          </Button>}
 
           {/* Divider */}
-          <div className="relative">
+          {!forgotPassword && <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-card px-3 text-muted-foreground">ou use seu e-mail</span>
             </div>
-          </div>
+          </div>}
 
           {/* Email/password form */}
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div className="space-y-1.5">
+          <form onSubmit={forgotPassword ? handlePasswordReset : handleAuth} className="space-y-4">
+            {!forgotPassword && <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase text-primary ml-1">E-mail</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -142,7 +167,17 @@ const Auth = () => {
                   required
                 />
               </div>
-            </div>
+            </div>}
+
+            {isLogin && !forgotPassword && (
+              <button
+                type="button"
+                onClick={() => setForgotPassword(true)}
+                className="block ml-auto text-sm font-semibold text-primary hover:underline"
+              >
+                Esqueci minha senha
+              </button>
+            )}
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase text-primary ml-1">Senha</label>
@@ -167,6 +202,8 @@ const Auth = () => {
             >
               {loading ? (
                 'Aguarde...'
+              ) : forgotPassword ? (
+                'ENVIAR LINK'
               ) : isLogin ? (
                 <span className="flex items-center gap-2"><LogIn className="w-5 h-5" /> ENTRAR</span>
               ) : (
@@ -175,7 +212,7 @@ const Auth = () => {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-muted-foreground">
+          {!forgotPassword ? <p className="text-center text-sm text-muted-foreground">
             {isLogin ? 'Não tem conta? ' : 'Já tem conta? '}
             <button
               onClick={() => setIsLogin(!isLogin)}
@@ -183,7 +220,15 @@ const Auth = () => {
             >
               {isLogin ? 'Cadastre-se' : 'Faça login'}
             </button>
-          </p>
+          </p> : (
+            <button
+              type="button"
+              onClick={() => setForgotPassword(false)}
+              className="block mx-auto text-sm font-bold text-primary hover:underline"
+            >
+              Voltar ao login
+            </button>
+          )}
         </div>
 
         <button

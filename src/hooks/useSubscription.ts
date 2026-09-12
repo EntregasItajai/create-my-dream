@@ -49,6 +49,16 @@ export const useSubscription = () => {
     fetchRoles(user.id);
   }, [user, authLoading, fetchRoles]);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        fetchRoles(session.user.id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [fetchRoles]);
+
   const isPremium = roles.includes('premium') || roles.includes('admin');
   const isAdmin = roles.includes('admin');
 
