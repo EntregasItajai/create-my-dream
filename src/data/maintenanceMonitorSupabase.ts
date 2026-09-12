@@ -6,6 +6,10 @@ import {
   ITENS_PADRAO,
   ItemStatus,
   calcularStatusItem,
+  loadTrocas,
+  loadItensPadrao,
+  loadKmAtual,
+  CUSTOM_ITEMS_KEYS,
 } from './maintenanceMonitor';
 
 // ─── KM Atual ───────────────────────────────────────────────
@@ -136,6 +140,77 @@ export async function registrarTrocaDB(
 
 export async function deleteTrocaDB(id: string) {
   await supabase.from('trocas_manutencao').delete().eq('id', id);
+}
+
+// ─── Migração localStorage → banco ──────────────────────────
+
+const MIGRACAO_KEYS: Record<VehicleType, string> = {
+  moto: 'entregasItajai_migradoParaDB_moto',
+  carro: 'entregasItajai_migradoParaDB_carro',
+};
+
+// Registros feitos antes de o app passar a usar o banco ficaram só no navegador.
+// Sobe o que existe localmente uma única vez, sem apagar a cópia local.
+export async function migrarDadosLocaisParaDB(
+  userId: string,
+  vehicle: VehicleType
+): Promise<number> {
+  if (localStorage.getItem(MIGRACAO_KEYS[vehicle])) return 0;
+
+  const marcarConcluida = () =>
+    localStorage.setItem(MIGRACAO_KEYS[vehicle], new Date().toISOString());
+
+  // Formato legado: descarta registros incompletos para que um dado corrompido
+  // não impeça a recuperação de todo o resto.
+  const trocasLocais = loadTrocas(vehicle).filter(
+    (t) => t && typeof t.item === 'string' && t.item.trim() !== '' && Number.isFinite(t.kmTroca)
+  );
+  if (trocasLocais.length === 0) {
+    marcarConcluida();
+    return 0;
+  }
+
+  const jaNoBanco = await loadTrocasDB(userId, vehicle);
+  if (jaNoBanco.length > 0) {
+    marcarConcluida();
+    return 0;
+  }
+
+  const rows = trocasLocais.map((t) => ({
+    user_id: userId,
+    vehicle_type: vehicle,
+    data: t.data ?? new Date().toISOString().slice(0, 10),
+    km_troca: t.kmTroca,
+    item: t.item,
+    km_intervalo: Number.isFinite(t.kmIntervalo) ? t.kmIntervalo : 0,
+    km_proxima: t.kmProxima ?? (t.kmIntervalo > 0 ? t.kmTroca + t.kmIntervalo : null),
+    marca: t.marca || null,
+    valor: t.valor ?? null,
+    obs: t.obs || null,
+  }));
+
+  const { error } = await supabase.from('trocas_manutencao').insert(rows);
+  if (error) throw error;
+
+  if (localStorage.getItem(CUSTOM_ITEMS_KEYS[vehicle])) {
+    const itensDB = await supabase
+      .from('itens_padrao_usuario')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('vehicle_type', vehicle)
+      .limit(1);
+    if (!itensDB.data?.length) {
+      await saveItensPadraoDB(userId, loadItensPadrao(vehicle), vehicle);
+    }
+  }
+
+  const kmLocal = loadKmAtual();
+  if (kmLocal > 0 && (await loadKmAtualDB(userId)) <= 0) {
+    await saveKmAtualDB(userId, kmLocal);
+  }
+
+  marcarConcluida();
+  return rows.length;
 }
 
 // ─── Status (reusa lógica pura) ─────────────────────────────

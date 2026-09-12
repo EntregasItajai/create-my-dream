@@ -70,7 +70,7 @@ const STORAGE_KEYS: Record<VehicleType, string> = {
   carro: 'entregasItajai_trocas_carro',
 };
 
-const CUSTOM_ITEMS_KEYS: Record<VehicleType, string> = {
+export const CUSTOM_ITEMS_KEYS: Record<VehicleType, string> = {
   moto: 'entregasItajai_itensPadrao_moto',
   carro: 'entregasItajai_itensPadrao_carro',
 };

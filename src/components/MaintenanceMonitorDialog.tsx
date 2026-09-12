@@ -31,6 +31,7 @@ import {
   loadItensPadraoDB,
   saveItensPadraoDB,
   resetItensPadraoDB,
+  migrarDadosLocaisParaDB,
   calcularStatusTodosFromData,
 } from '@/data/maintenanceMonitorSupabase';
 import { getLatestFuelKmDB } from '@/data/fuelSupabase';
@@ -97,6 +98,18 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     setLoading(true);
     try {
       if (userId) {
+        try {
+          const recuperadas = await migrarDadosLocaisParaDB(userId, vehicleType);
+          if (recuperadas > 0) {
+            toast({
+              title: '✅ Registros recuperados!',
+              description: `${recuperadas} manutenç${recuperadas === 1 ? 'ão salva' : 'ões salvas'} anteriormente neste aparelho ${recuperadas === 1 ? 'foi enviada' : 'foram enviadas'} para a sua conta.`,
+            });
+          }
+        } catch (err) {
+          console.error('Erro ao migrar dados locais:', err);
+        }
+
         // Tentar carregar KM do combustível primeiro
         let kmToUse = await getLatestFuelKmDB(userId, vehicleType);
 
