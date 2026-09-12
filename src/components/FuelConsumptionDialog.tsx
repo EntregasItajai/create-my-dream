@@ -7,21 +7,16 @@ import { Button } from '@/components/ui/button';
 import { VehicleType } from '@/data/maintenanceItems';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { saveFuelKmDB } from '@/data/fuelSupabase';
+import {
+  FuelRecord,
+  FUEL_STORAGE_KEYS as STORAGE_KEYS,
+  loadFuelRecordsDB,
+  saveFuelRecordDB,
+  deleteFuelRecordDB,
+  migrarFuelLocaisParaDB,
+} from '@/data/fuelSupabase';
 
-export interface FuelRecord {
-  id: string;
-  data: string; // YYYY-MM-DD
-  kmInicial: number;
-  kmFinal: number;
-  litros: number;
-  rendimento: number; // km/L
-}
-
-const STORAGE_KEYS: Record<VehicleType, string> = {
-  moto: 'entregasItajai_fuel_moto',
-  carro: 'entregasItajai_fuel_carro',
-};
+export type { FuelRecord };
 
 const LAST_KM_KEYS: Record<VehicleType, string> = {
   moto: 'entregasItajai_fuelLastKm_moto',
@@ -105,12 +100,32 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
   }, [kmInicial, kmFinal, litros]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+
+    const lastKm = loadLastKm(vehicleType);
+    if (lastKm) setKmInicial(lastKm);
+
+    if (!user?.id) {
       setRecords(loadRecords(vehicleType));
-      const lastKm = loadLastKm(vehicleType);
-      if (lastKm) setKmInicial(lastKm);
+      return;
     }
-  }, [isOpen, vehicleType]);
+
+    (async () => {
+      try {
+        const recuperados = await migrarFuelLocaisParaDB(user.id, vehicleType);
+        if (recuperados > 0) {
+          toast({
+            title: '✅ Abastecimentos recuperados!',
+            description: `${recuperados} registro(s) deste aparelho ${recuperados === 1 ? 'foi enviado' : 'foram enviados'} para a sua conta.`,
+          });
+        }
+        setRecords(await loadFuelRecordsDB(user.id, vehicleType));
+      } catch (err) {
+        console.error('Erro ao carregar abastecimentos:', err);
+        setRecords(loadRecords(vehicleType));
+      }
+    })();
+  }, [isOpen, vehicleType, user?.id]);
 
   const monthRecords = useMemo(() => {
     return records
@@ -158,8 +173,7 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
     try {
       const rend = (fim - ini) / lit;
       const today = format(new Date(), 'yyyy-MM-dd');
-      const record: FuelRecord = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      const dados = {
         data: today,
         kmInicial: ini,
         kmFinal: fim,
@@ -167,14 +181,17 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
         rendimento: parseFloat(rend.toFixed(2)),
       };
 
-      // Salvar no localStorage
-      const updated = [...records, record];
-      saveRecords(updated, vehicleType);
-      setRecords(updated);
-
-      // Salvar no Supabase (se autenticado)
       if (user?.id) {
-        await saveFuelKmDB(user.id, vehicleType, fim, today);
+        const salvo = await saveFuelRecordDB(user.id, vehicleType, dados);
+        setRecords((prev) => [salvo, ...prev]);
+      } else {
+        const record: FuelRecord = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          ...dados,
+        };
+        const updated = [...records, record];
+        saveRecords(updated, vehicleType);
+        setRecords(updated);
       }
 
       // KM Final becomes next KM Inicial
@@ -193,10 +210,23 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const updated = records.filter(r => r.id !== id);
-    saveRecords(updated, vehicleType);
     setRecords(updated);
+
+    if (user?.id) {
+      try {
+        await deleteFuelRecordDB(id);
+      } catch (err) {
+        console.error('Erro ao excluir abastecimento:', err);
+        setRecords(records);
+        toast({ title: 'Erro', description: 'Não foi possível excluir.', variant: 'destructive' });
+        return;
+      }
+    } else {
+      saveRecords(updated, vehicleType);
+    }
+
     toast({ title: 'Removido', description: 'Registro excluído.' });
   };
 
