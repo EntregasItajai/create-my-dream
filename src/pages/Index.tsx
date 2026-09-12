@@ -109,6 +109,13 @@ const Index = () => {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const { getBannersByPosition } = useBanners();
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
   const [vehicleType, setVehicleType] = useState<VehicleType>(loadVehicleType);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kmControlOpen, setKmControlOpen] = useState(false);
