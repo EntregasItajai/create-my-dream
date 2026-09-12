@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { VehicleType } from '@/data/maintenanceItems';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveFuelKmDB } from '@/data/fuelSupabase';
 
 export interface FuelRecord {
   id: string;
@@ -56,11 +58,13 @@ interface FuelConsumptionDialogProps {
 }
 
 export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelConsumptionDialogProps) => {
+  const { user } = useAuth();
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [records, setRecords] = useState<FuelRecord[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [savingToDb, setSavingToDb] = useState(false);
 
   // Form
   const [kmInicial, setKmInicial] = useState('');
@@ -132,7 +136,7 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
     else setViewMonth(m => m + 1);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const ini = parseInt(kmInicial, 10);
     const fim = parseInt(kmFinal, 10);
     const lit = parseFloat(litros);
@@ -150,28 +154,43 @@ export const FuelConsumptionDialog = ({ isOpen, onClose, vehicleType }: FuelCons
       return;
     }
 
-    const rend = (fim - ini) / lit;
-    const record: FuelRecord = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      data: format(new Date(), 'yyyy-MM-dd'),
-      kmInicial: ini,
-      kmFinal: fim,
-      litros: lit,
-      rendimento: parseFloat(rend.toFixed(2)),
-    };
+    setSavingToDb(true);
+    try {
+      const rend = (fim - ini) / lit;
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const record: FuelRecord = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        data: today,
+        kmInicial: ini,
+        kmFinal: fim,
+        litros: lit,
+        rendimento: parseFloat(rend.toFixed(2)),
+      };
 
-    const updated = [...records, record];
-    saveRecords(updated, vehicleType);
-    setRecords(updated);
+      // Salvar no localStorage
+      const updated = [...records, record];
+      saveRecords(updated, vehicleType);
+      setRecords(updated);
 
-    // KM Final becomes next KM Inicial
-    saveLastKm(kmFinal, vehicleType);
-    setKmInicial(kmFinal);
-    setKmFinal('');
-    setLitros('');
-    setShowForm(false);
+      // Salvar no Supabase (se autenticado)
+      if (user?.id) {
+        await saveFuelKmDB(user.id, vehicleType, fim, today);
+      }
 
-    toast({ title: '⛽ Registrado!', description: `Rendimento: ${rend.toFixed(2)} km/L` });
+      // KM Final becomes next KM Inicial
+      saveLastKm(kmFinal, vehicleType);
+      setKmInicial(kmFinal);
+      setKmFinal('');
+      setLitros('');
+      setShowForm(false);
+
+      toast({ title: '⛽ Registrado!', description: `Rendimento: ${rend.toFixed(2)} km/L` });
+    } catch (error) {
+      console.error('Erro ao salvar abastecimento:', error);
+      toast({ title: 'Aviso', description: 'Registrado localmente, mas houve erro ao sincronizar.', variant: 'destructive' });
+    } finally {
+      setSavingToDb(false);
+    }
   };
 
   const handleDelete = (id: string) => {

@@ -15,15 +15,35 @@ interface FreightCalculatorProps {
   onOpenMaintenanceMonitor: () => void;
   onOpenFuelConsumption: () => void;
   vehicleType: VehicleType;
+  maintenanceStatus?: 'ok' | 'proximo' | 'vencido';
 }
 
 export const FreightCalculator = ({
   distance, hours, minutes,
   onDistanceChange, onHoursChange, onMinutesChange,
   onCalculate, onCalculateCosts, onOpenKmControl, onOpenMaintenanceMonitor, onOpenFuelConsumption, vehicleType,
+  maintenanceStatus = 'ok',
 }: FreightCalculatorProps) => {
   const VehicleIcon = vehicleType === 'moto' ? Bike : Car;
   const vehicleLabel = vehicleType === 'moto' ? '🏍️ Moto' : '🚗 Carro';
+
+  const getMaintenanceButtonColor = () => {
+    switch (maintenanceStatus) {
+      case 'vencido': return 'border-destructive/50 text-destructive hover:bg-destructive/10';
+      case 'proximo': return 'border-yellow-500/50 text-yellow-600 hover:bg-yellow-500/10';
+      case 'ok': return 'border-secondary/50 text-secondary hover:bg-secondary/10';
+      default: return 'border-primary/30 text-primary hover:bg-primary/10';
+    }
+  };
+
+  const getMaintenanceIndicator = () => {
+    switch (maintenanceStatus) {
+      case 'vencido': return '🔴';
+      case 'proximo': return '🟡';
+      case 'ok': return '🟢';
+      default: return '';
+    }
+  };
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -124,8 +144,9 @@ export const FreightCalculator = ({
           <Button
             variant="outline"
             onClick={onOpenMaintenanceMonitor}
-            className="w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg border-primary/30 text-primary hover:bg-primary/10"
+            className={`w-full h-12 text-sm font-bold transition-all flex items-center justify-center gap-2 rounded-lg border ${getMaintenanceButtonColor()}`}
           >
+            <span className="text-lg">{getMaintenanceIndicator()}</span>
             <Wrench className="w-5 h-5" />
             MONITORAR MANUTENÇÕES
           </Button>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List, Settings, RotateCcw, Pencil, Loader2 } from 'lucide-react';
+import { Wrench, Plus, Trash2, ChevronDown, ChevronUp, AlertTriangle, CheckCircle2, Clock, List, Settings, RotateCcw, Pencil, Loader2, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
@@ -33,6 +33,7 @@ import {
   resetItensPadraoDB,
   calcularStatusTodosFromData,
 } from '@/data/maintenanceMonitorSupabase';
+import { getLatestFuelKmDB } from '@/data/fuelSupabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
@@ -96,12 +97,19 @@ export const MaintenanceMonitorDialog = ({ isOpen, onClose, vehicleType }: Maint
     setLoading(true);
     try {
       if (userId) {
-        const [km, itens, trocasData] = await Promise.all([
-          loadKmAtualDB(userId),
+        // Tentar carregar KM do combustível primeiro
+        let kmToUse = await getLatestFuelKmDB(userId, vehicleType);
+
+        // Se não tiver KM do combustível, carregar do banco de manutenção
+        if (kmToUse <= 0) {
+          kmToUse = await loadKmAtualDB(userId);
+        }
+
+        const [itens, trocasData] = await Promise.all([
           loadItensPadraoDB(userId, vehicleType),
           loadTrocasDB(userId, vehicleType),
         ]);
-        setKmAtualRaw(km > 0 ? km.toString() : '');
+        setKmAtualRaw(kmToUse > 0 ? kmToUse.toString() : '');
         setItensPadrao(itens);
         setTrocas(trocasData);
       } else {

@@ -13,6 +13,7 @@ import { AdBanner } from '@/components/AdBanner';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from '@/hooks/useTheme';
 import { useBanners } from '@/hooks/useBanners';
+import { useMaintenanceStatus } from '@/hooks/useMaintenanceStatus';
 import {
   VehicleType,
   ItemManutencao,
@@ -116,7 +117,9 @@ const Index = () => {
       navigate('/auth');
     }
   }, [user, authLoading, navigate]);
+
   const [vehicleType, setVehicleType] = useState<VehicleType>(loadVehicleType);
+  const { status: maintenanceStatus } = useMaintenanceStatus(vehicleType, true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [kmControlOpen, setKmControlOpen] = useState(false);
   const [maintenanceMonitorOpen, setMaintenanceMonitorOpen] = useState(false);
@@ -322,6 +325,7 @@ const Index = () => {
                 setFuelConsumptionOpen(true);
               }}
               vehicleType={vehicleType}
+              maintenanceStatus={maintenanceStatus}
             />
 
             {result && <FreightResult result={result} />}
