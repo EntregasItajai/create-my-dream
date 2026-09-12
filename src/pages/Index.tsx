@@ -105,7 +105,7 @@ export interface CalculationResult {
 }
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const { getBannersByPosition } = useBanners();
@@ -120,6 +120,25 @@ const Index = () => {
   const [minutes, setMinutes] = useState('');
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [maintenanceItems, setMaintenanceItems] = useState<ItemManutencao[]>(() => loadMaintenanceItems(vehicleType));
+
+  // Exigir login para acessar a calculadora
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast({
+        title: 'Login necessário',
+        description: 'Faça login com Google ou cadastre-se para usar a calculadora.',
+      });
+      navigate('/auth', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Verificando login...</p>
+      </div>
+    );
+  }
 
   // Switch vehicle
   const handleVehicleChange = useCallback((type: VehicleType) => {
