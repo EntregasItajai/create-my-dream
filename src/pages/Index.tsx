@@ -244,11 +244,7 @@ const Index = () => {
   };
 
   const handleCalculateCosts = () => {
-    if (!user) {
-      toast({ title: 'Login necessário', description: 'Faça login para calcular os custos da entrega.', variant: 'destructive' });
-      navigate('/auth');
-      return;
-    }
+    if (requireLoginForCalculation()) return;
 
     const km = parseFloat(distance);
 
