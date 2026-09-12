@@ -121,27 +121,11 @@ const Index = () => {
   const [result, setResult] = useState<CalculationResult | null>(null);
   const [maintenanceItems, setMaintenanceItems] = useState<ItemManutencao[]>(() => loadMaintenanceItems(vehicleType));
 
-  // Limite de cálculos gratuitos para usuários não logados
-  const getFreeCalculationsCount = (): number => {
-    const stored = localStorage.getItem('free_calculations_count');
-    return stored ? parseInt(stored, 10) || 0 : 0;
-  };
-
-  const incrementFreeCalculationsCount = () => {
-    const current = getFreeCalculationsCount();
-    localStorage.setItem('free_calculations_count', String(current + 1));
-  };
-
   const requireLoginForCalculation = (): boolean => {
     if (user) return false;
-    const count = getFreeCalculationsCount();
-    if (count < 2) {
-      incrementFreeCalculationsCount();
-      return false;
-    }
     toast({
-      title: 'Limite atingido',
-      description: 'Para continuar usando a ferramenta faça login.',
+      title: 'Login necessário',
+      description: 'Faça login para usar a calculadora.',
       variant: 'destructive',
     });
     navigate('/auth');
